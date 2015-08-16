@@ -1,6 +1,5 @@
 #include <ubus_intf.h>
 
-
 static const char * device_types[] = {
 	"expled",
 	"gpio",
@@ -10,11 +9,24 @@ int main(int argc, char* argv[])
 {
 	int status	= 0;
 
-	char 	device 	[1024];
-	char	function[1024];
-	char	json	[1024];
+	char 	*device;
+	char	*function;
+	char	*json;
 
 	rapidjson::Document jsonDoc;
+
+	ExpLed 	expLedObj;
+
+
+	//// initialization
+	// allocate memory for the pointers
+	device 		= new char[1024];
+	function 	= new char[1024];
+	json 		= new char[1024];
+
+	// class initialization
+	expLedObj.SetVerbosity(true);
+	expLedObj.SetDebugMode(true);
 	
 	// parse the command line arguments
 	for (int i = 1; i < argc; i++) 	{
@@ -27,7 +39,7 @@ int main(int argc, char* argv[])
 			// get the function name
 			strcpy( function, argv[++i] );
 			printf("parsing function: %s\n", function);
-		}
+		}	
 		else if ( strcmp(argv[i], "-json") == 0 )	{
 			// get the json
 			strcpy( json, argv[++i] );
@@ -36,18 +48,20 @@ int main(int argc, char* argv[])
 	}
 
 	// check device against list of existing devices
-	/* TODO */
-	
-	// parse the json
-	jsonDoc.Parse(json);
-
-	// loop through the json object
-	if ( jsonDoc.IsObject() ) {
-		printf("Looping through json object\n");
-		for (rapidjson::Value::ConstMemberIterator itr = jsonDoc.MemberBegin(); itr != jsonDoc.MemberEnd(); ++itr)	{
-	    	printf( "Value of member '%s' is '%s'\n", itr->name.GetString(), itr->value.GetString() );
-	    }
+	/* TODO: make this cleaner */
+	printf("Running process on ");
+	if (strcmp( device, "expled") == 0)	{
+		printf("expLed Object\n");
+		expLedObj.Process(function, json);
 	}
+
+
+	//// clean-up
+	// free dynamically allocated memory
+	delete[] device;
+	delete[] function;
+	delete[] json;
+
 
 	return 0;
 }

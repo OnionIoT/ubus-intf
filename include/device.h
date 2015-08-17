@@ -1,11 +1,12 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
-#include <jsonHelper.h>
+#include <rapidjson/document.h>
 
 #include <stdlib.h>
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 #include <module.h>
 
@@ -14,16 +15,23 @@ public:
 	Device(void);
 	~Device(void);
 
-	virtual int 	Process			(char* function, char* json)	= 0;
+	int 			Process			(char* function, char* json);
 
 	void			SetDebugMode	(bool input);
 	void			SystemCommand	(char* cmd);
 
 protected:
-	// protected members
-	JsonHelper 		jsonHelperObj;
+	// protected functions
 
-	bool			bDebugMode;
+
+	// protected members
+	rapidjson::Document 	jsonDoc;
+
+	bool					bDebugMode;
+
+private:
+	// private functions
+	virtual int 	_Process		(char* function) = 0;
 
 };
 

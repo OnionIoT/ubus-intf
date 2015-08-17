@@ -8,6 +8,10 @@
 #define 	EXP_LED_ENABLE_LED			"dirout-low"
 #define 	EXP_LED_DISABLE_LED			"dirout-high"
 
+#define 	EXP_LED_COLOR_R_STRING		"red"
+#define 	EXP_LED_COLOR_G_STRING		"green"
+#define 	EXP_LED_COLOR_B_STRING		"blue"
+
 #define 	EXP_LED_COLOR_R_PIN_ID		17
 #define 	EXP_LED_COLOR_G_PIN_ID		16
 #define 	EXP_LED_COLOR_B_PIN_ID		15
@@ -25,13 +29,13 @@ public:
 	ExpLed(void);
 	~ExpLed(void);
 
-	int 	Process		(char* function, char* json);
-
 private:
 	// private functions
-	int 	FunctionSetColor	(void);
-	int 	FunctionSet			(void);
-	int		FunctionStatus		(void);
+	int 	_Process			(char* function);
+
+	int 	_FunctionSetColor	(void);
+	int 	_FunctionSet		(void);
+	int		_FunctionStatus		(void);
 
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];

@@ -26,3 +26,19 @@ void Device::SystemCommand(char* cmd)
 		system(cmd);
 	}
 }
+
+int Device::Process(char* function, char* json)
+{
+	int status		= 0;
+
+	// parse the json
+	jsonDoc.Parse(json);
+	
+	// call the private process function
+	if ( jsonDoc.IsObject() )	{
+		status 	= _Process(function);
+	}
+
+
+	return (status);
+}

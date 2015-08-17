@@ -6,9 +6,6 @@ ExpLed::ExpLed(void)
 	pins[EXP_LED_COLOR_ID_R]	= EXP_LED_COLOR_R_PIN_ID;
 	pins[EXP_LED_COLOR_ID_G]	= EXP_LED_COLOR_R_PIN_ID;
 	pins[EXP_LED_COLOR_ID_B]	= EXP_LED_COLOR_R_PIN_ID;
-
-	// enable verbosity for now
-	jsonHelperObj.SetVerbosity(true);
 }
 
 ExpLed::~ExpLed(void)
@@ -17,22 +14,19 @@ ExpLed::~ExpLed(void)
 }
 
 //// public functions
-int ExpLed::Process(char* function, char* json)
+int ExpLed::_Process(char* function)
 {
 	int status		= 0;
 
-	// parse the json
-	jsonHelperObj.Read(json);
-	
 	// check which function is to be used
 	if ( strcmp(function, "set_color") == 0 )	{
-		status = FunctionSetColor();
+		status = _FunctionSetColor();
 	}
 	else if ( strcmp(function, "set") == 0 )	{
-		status = FunctionSet();
+		status = _FunctionSet();
 	}
 	else if (strcmp(function, "status") == 0 )	{
-		status = FunctionStatus();
+		status = _FunctionStatus();
 	}
 
 
@@ -42,7 +36,7 @@ int ExpLed::Process(char* function, char* json)
 
 //// private functions 
 
-int ExpLed::FunctionSetColor (void)
+int ExpLed::_FunctionSetColor (void)
 {
 	int status 	= 0;
 
@@ -54,32 +48,34 @@ int ExpLed::FunctionSetColor (void)
 	char		*pinCmd;
 
 	// Check that correct keys have been passed
-	if ( 	jsonHelperObj.FindElement("value") &&
-			jsonHelperObj.FindElement("color")
-		)	
+	if ( 	jsonDoc.HasMember("value") && 
+			jsonDoc.HasMember("color")
+		)
 	{
-		// read the json values
-		colorValue	= jsonHelperObj.GetElement("color");
-		ledValue	= jsonHelperObj.GetElement("value");
-
-		if (bVerboseMode) printf("FOUND color (%s) and value (%s) elements!\n", colorValue.c_str(), ledValue.c_str());
+		// select the pin command based on the value
+		if ( jsonDoc["value"].IsString() ) 	{
+			pinVal	= EXP_LED_DISABLE_LED;
+			if ( strcmp("true", jsonDoc["value"].GetString() ) == 0 )	{
+				pinVal 	= EXP_LED_ENABLE_LED;
+			}
+		}
+		else if ( jsonDoc["value"].IsBool() )	{
+			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_ENABLE_LED : EXP_LED_DISABLE_LED);
+		}
 
 		// select the pin based on the color
-		if( strcmp(colorValue.c_str(), "red") == 0 )	{
-			pinId 	= EXP_LED_COLOR_R_PIN_ID;
-		}
-		else if( strcmp(colorValue.c_str(), "green") == 0 )	{
-			pinId 	= EXP_LED_COLOR_G_PIN_ID;
-		}
-		else if( strcmp(colorValue.c_str(), "blue") == 0 )	{
-			pinId 	= EXP_LED_COLOR_B_PIN_ID;
+		if ( jsonDoc["color"].IsString() )	{
+			if( strcmp(EXP_LED_COLOR_R_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_R_PIN_ID;
+			}
+			else if( strcmp(EXP_LED_COLOR_G_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_G_PIN_ID;
+			}
+			else if( strcmp(EXP_LED_COLOR_B_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_B_PIN_ID;
+			}
 		}
 
-		// select the pin command based on the value
-		pinVal	= EXP_LED_DISABLE_LED;
-		if ( strcmp(ledValue.c_str(), "true") == 0 )	{
-			pinVal 	= EXP_LED_ENABLE_LED;
-		}
 
 		// generate the system command
 		pinCmd	= new char [1024];
@@ -90,21 +86,26 @@ int ExpLed::FunctionSetColor (void)
 
 		delete[]	pinCmd;
 	}
+	else 
+	{
+		status 	= 1;
+	}
+
 
 	return (status);
 }
 
-int ExpLed::FunctionSet (void)
+int ExpLed::_FunctionSet (void)
 {
 	int status 	= 0;
 
 	std::string	hexValue;
 
 	// Check that correct key has been passed
-	if ( jsonHelperObj.FindElement("value") )	{
-		hexValue 	= jsonHelperObj.GetElement("value");
+	if ( jsonDoc.HasMember("value")  )	{
+		
 
-		if (bVerboseMode) printf("FOUND value element, data is '%s'!\n", hexValue.c_str() );
+		//if (bVerboseMode) printf("FOUND value element, data is '%s'!\n", hexValue.c_str() );
 	}
 
 
@@ -112,7 +113,7 @@ int ExpLed::FunctionSet (void)
 }
 
 
-int ExpLed::FunctionStatus (void)
+int ExpLed::_FunctionStatus (void)
 {
 	int status 	= 0;
 

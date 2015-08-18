@@ -3,7 +3,7 @@
 static const char * device_types[] = {
 	"expled",
 	"gpio",
-};
+};	
 
 int main(int argc, char* argv[])
 {

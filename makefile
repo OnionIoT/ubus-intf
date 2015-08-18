@@ -1,7 +1,7 @@
 
 # This is the main compiler
-CC := g++
-# CC := clang --analyze # and comment out the linker last line for sanity
+CXX := g++
+# CXX := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
 BUILDDIR := build
 TARGET := bin/ubus_intf
@@ -9,18 +9,18 @@ TARGET := bin/ubus_intf
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g # -Wall
+CXXFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
 INC := -I include
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p bin
 	@echo " Linking..."
-	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+	@echo " $(CXX) $^ -o $(TARGET) $(LIB)"; $(CXX) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo " $(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<"; $(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<
 
 clean:
 	@echo " Cleaning..."; 
@@ -28,10 +28,10 @@ clean:
 
 # Tests
 tester:
-	$(CC) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
+	$(CXX) $(CXXFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
 
 # Spikes
 #ticket:
-#  $(CC) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
+#  $(CXX) $(CXXFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
 
 .PHONY: clean

@@ -6,9 +6,11 @@
 #include <rapidjson/writer.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 #include <module.h>
 
@@ -17,12 +19,15 @@ public:
 	Device(void);
 	~Device(void);
 
-	int 			Process			(char* function, char* json);
+	int 			Process				(char* function, char* json);
 
-	void 			PrintJsonObj	(void);
+	void 			PrintJsonObj		(void);
 
-	void			SetDebugMode	(bool input);
-	void			SystemCommand	(char* cmd);
+	void			SystemCommandExec	(char* cmd);
+	void			SystemCommandRead	(char* cmd, char* response);
+
+	void			SetDebugMode				(bool input);
+	void 			SetDebugSystemCommandResp	(char input[]);
 
 protected:
 	// protected functions
@@ -38,6 +43,8 @@ private:
 	// private functions
 	virtual int 	_Process		(char* function) = 0;
 
+	// private members
+	char*			debugResponse;
 };
 
 #endif	// _DEVICE_H_

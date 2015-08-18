@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 	/* TODO: make this cleaner */
 	if (UBUS_INTF_VERBOSE) printf("Running process on ");
 	if (strcmp( device, "expled") == 0)	{
-		if (UBUS_INTF_VERBOSE) printf("expLed Object\n");
+		if (UBUS_INTF_VERBOSE) printf("expLed Object:\n\n");
 		expLedObj.Process(function, json);
 	}
 

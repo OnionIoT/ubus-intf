@@ -11,6 +11,9 @@ then
 	elif [ $function == "set_color" ]
 	then
 		./bin/runner -device expled -function set_color -json '{"color": "red", "value": "true"}'
+	elif [ $function == "status" ]
+	then
+		./bin/runner -device expled -function status -json ''
 	fi
 fi
 

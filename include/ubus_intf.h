@@ -12,7 +12,7 @@
 
 
 
-#define	UBUS_INTF_IS_PRODUCTION		0
+#define	UBUS_INTF_IS_PRODUCTION		1
 #define UBUS_INTF_IS_OMEGA			0
 
 

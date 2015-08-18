@@ -3,11 +3,20 @@
 
 #include <device/device.h>
 
+#define		EXP_LED_FUNCTION_SET_COLOR	"set_color"
+#define		EXP_LED_FUNCTION_SET 		"set"
+#define		EXP_LED_FUNCTION_STATUS		"status"
+
 #define 	EXP_LED_CTRL_CMD			"gpioctl"
+#define 	EXP_LED_CTRL_CMD_FIND_VAL	"grep [HIGH/LOW]"
+#define 	EXP_LED_CTRL_CMD_ISO_VAL 	"sed -e 's/.*is //'"
 
 #define 	EXP_LED_CMD_ENABLE_LED		"dirout-low"
 #define 	EXP_LED_CMD_DISABLE_LED		"dirout-high"
 #define		EXP_LED_CMD_GET_VALUE		"get"
+
+#define		EXP_LED_CMD_ON_VALUE		"LOW"
+#define		EXP_LED_CMD_OFF_VALUE		"HIGH"
 
 #define 	EXP_LED_COLOR_R_STRING		"red"
 #define 	EXP_LED_COLOR_G_STRING		"green"
@@ -38,7 +47,8 @@ private:
 	int 	_FunctionSet		(void);
 	int		_FunctionStatus		(void);
 
-	void 	_FunctionSetColorPrint	(int inputStatus);
+	void 	_FunctionSetColorJson	(int inputStatus);
+	void 	_FunctionStatusJson		(const char* color, bool value);
 
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];

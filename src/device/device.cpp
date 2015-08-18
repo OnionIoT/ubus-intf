@@ -4,28 +4,18 @@ Device::Device(void)
 {
 	// not in debug mode by default
 	bDebugMode	= false;
+
+	// set pointers to null
+	debugResponse	= NULL;
 }
 
 Device::~Device(void)
 {
-	// nothing for now
+	// deallocate any memory
+	if (debugResponse != NULL)		delete[] debugResponse;
 }
 
 // public functions
-void Device::SetDebugMode(bool input)
-{
-	bDebugMode	= input;
-}
-
-void Device::SystemCommand(char* cmd)
-{
-	if (bDebugMode) {
-		printf("Running: %s", cmd);
-	}
-	else	{
-		system(cmd);
-	}
-}
 
 int Device::Process(char* function, char* json)
 {
@@ -35,9 +25,7 @@ int Device::Process(char* function, char* json)
 	jsonDoc.Parse(json);
 	
 	// call the private process function
-	if ( jsonDoc.IsObject() )	{
-		status 	= _Process(function);
-	}
+	status 	= _Process(function);
 
 
 	return (status);
@@ -55,5 +43,53 @@ void Device::PrintJsonObj(void)
 	printf("%s\n", str.c_str() );
 }
 
+
+void Device::SetDebugMode(bool input)
+{
+	bDebugMode	= input;
+}
+
+void Device::SetDebugSystemCommandResp	(char input[])
+{
+	// allocate memory
+	debugResponse	= new char[1024];
+
+	strcpy(debugResponse, input);
+}
+
+void Device::SystemCommandExec(char* cmd)
+{
+	if (bDebugMode) {
+		printf("Running: %s", cmd);
+	}
+	else	{
+		system(cmd);
+	}
+}
+
+void Device::SystemCommandRead(char* cmd, char* response)
+{
+	if (bDebugMode) {
+		printf("Running: %s", cmd);
+
+		strcpy(response, debugResponse);
+	}
+	else	{
+		// run the specified command and read the system output
+		FILE* pipe = popen(cmd, "r");
+	    if (!pipe) return;
+	    
+	    char buffer[128];
+	    std::string result = "";
+	    
+	    while(!feof(pipe)) {
+	    	if(fgets(buffer, 128, pipe) != NULL)
+	    		result += buffer;
+	    }
+	    
+	    pclose(pipe);
+	    strcpy(response, result.c_str() );
+	}
+}
 
 

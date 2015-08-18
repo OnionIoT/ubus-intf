@@ -7,13 +7,13 @@ if [ $device == "expled" ]
 then
 	if [ $function == "set" ]
 	then
-		./bin/runner -device expled -function set -json '{"value": "123"}'
+		./bin/ubus_intf -device expled -function set -json '{"value": "123"}'
 	elif [ $function == "set_color" ]
 	then
-		./bin/runner -device expled -function set_color -json '{"color": "red", "value": "true"}'
+		./bin/ubus_intf -device expled -function set_color -json '{"color": "red", "value": "true"}'
 	elif [ $function == "status" ]
 	then
-		./bin/runner -device expled -function status -json ''
+		./bin/ubus_intf -device expled -function status -json ''
 	fi
 fi
 

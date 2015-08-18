@@ -62,6 +62,9 @@ int ExpLed::_FunctionSetColor (void)
 		else if ( jsonDoc["value"].IsBool() )	{
 			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_ENABLE_LED : EXP_LED_DISABLE_LED);
 		}
+		else {
+			status = 1;
+		}
 
 		// select the pin based on the color
 		if ( jsonDoc["color"].IsString() )	{
@@ -75,24 +78,60 @@ int ExpLed::_FunctionSetColor (void)
 				pinId 	= EXP_LED_COLOR_B_PIN_ID;
 			}
 		}
+		else {
+			status = 1;
+		}
 
 
-		// generate the system command
-		pinCmd	= new char [1024];
-		sprintf(pinCmd, "%s %s %d\n", EXP_LED_CTRL_CMD, pinVal.c_str(), pinId);
+		// make the system call
+		if (status == 0)	{
+			// generate the command
+			pinCmd	= new char [1024];
+			sprintf(pinCmd, "%s %s %d\n", EXP_LED_CTRL_CMD, pinVal.c_str(), pinId);
 
-		// execute the command
-		SystemCommand(pinCmd);
+			// execute the command
+			SystemCommand(pinCmd);
 
-		delete[]	pinCmd;
+			delete[]	pinCmd;
+		}
 	}
 	else 
 	{
 		status 	= 1;
 	}
 
+	// generate the json return
+	_FunctionSetColorPrint(status);
+
 
 	return (status);
+}
+
+void ExpLed::_FunctionSetColorPrint (int inputStatus)
+{
+	char 	buffer[1024];
+	int 	len;
+
+	rapidjson::Value 	success;
+
+
+	// setup the json object
+	jsonOut.SetObject();
+
+	// populate the value
+	if (inputStatus == 0)
+	{
+		success.SetString("true");
+	}
+	else {
+		success.SetString("false");
+	}
+
+	// add value to the json object
+	jsonOut.AddMember("success", success, jsonOut.GetAllocator() );
+
+
+	PrintJsonObj();
 }
 
 int ExpLed::_FunctionSet (void)

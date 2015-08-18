@@ -37,6 +37,8 @@ private:
 	int 	_FunctionSet		(void);
 	int		_FunctionStatus		(void);
 
+	void 	_FunctionSetColorPrint	(int inputStatus);
+
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];
 };

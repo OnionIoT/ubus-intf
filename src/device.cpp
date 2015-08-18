@@ -42,3 +42,18 @@ int Device::Process(char* function, char* json)
 
 	return (status);
 }
+
+void Device::PrintJsonObj(void)
+{
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+	jsonOut.Accept(writer);
+
+	std::string str = buffer.GetString();
+
+	printf("%s\n", str.c_str() );
+}
+
+
+

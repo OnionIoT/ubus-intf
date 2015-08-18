@@ -9,10 +9,11 @@ public:
 	Module(void);
 	~Module(void);
 
+	void 	SetVerbosity (int input);
 	void 	SetVerbosity (bool input);
 
 protected:
-	bool				bVerboseMode;
+	int				verbosityLevel;
 };
 
 #endif 	// _MODULE_H_

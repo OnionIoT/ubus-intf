@@ -25,33 +25,36 @@ int main(int argc, char* argv[])
 	json 		= new char[1024];
 
 	// class initialization
-	expLedObj.SetVerbosity(true);
-	expLedObj.SetDebugMode(true);
+	expLedObj.SetVerbosity(UBUS_INTF_VERBOSE);
+	expLedObj.SetDebugMode(UBUS_INTF_DEBUG);
 	
 	// parse the command line arguments
 	for (int i = 1; i < argc; i++) 	{
 		if ( strcmp(argv[i], "-device") == 0 )	{
 			// get the device name
 			strcpy( device, argv[++i] );
-			printf("parsing device: %s\n", device);
+			
+			if (UBUS_INTF_VERBOSE) printf("parsing device: %s\n", device);
 		}
 		else if ( strcmp(argv[i], "-function") == 0 )	{
 			// get the function name
 			strcpy( function, argv[++i] );
-			printf("parsing function: %s\n", function);
+			
+			if (UBUS_INTF_VERBOSE) printf("parsing function: %s\n", function);
 		}	
 		else if ( strcmp(argv[i], "-json") == 0 )	{
 			// get the json
 			strcpy( json, argv[++i] );
-			printf("parsing json: %s\n", json);
+			
+			if (UBUS_INTF_VERBOSE) printf("parsing json: %s\n", json);
 		}
 	}
 
 	// check device against list of existing devices
 	/* TODO: make this cleaner */
-	printf("Running process on ");
+	if (UBUS_INTF_VERBOSE) printf("Running process on ");
 	if (strcmp( device, "expled") == 0)	{
-		printf("expLed Object\n");
+		if (UBUS_INTF_VERBOSE) printf("expLed Object\n");
 		expLedObj.Process(function, json);
 	}
 

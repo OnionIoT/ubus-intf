@@ -3,7 +3,7 @@
 Module::Module(void)
 {
 	// not verbose by default
-	bVerboseMode	= false;
+	verbosityLevel	= 0;
 }
 
 Module::~Module(void)
@@ -11,7 +11,12 @@ Module::~Module(void)
 	// nothing for now
 }
 
+void Module::SetVerbosity (int input)
+{
+	verbosityLevel	= input;
+}
+
 void Module::SetVerbosity (bool input)
 {
-	bVerboseMode	= input;
+	verbosityLevel	= (input ? 1 : 0);
 }

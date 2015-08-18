@@ -55,12 +55,16 @@ int ExpLed::_FunctionSetColor (void)
 	{
 		// select the pin command based on the value
 		if ( jsonDoc["value"].IsString() ) 	{
+			if (verbosityLevel > 0) printf("Found value element: '%s', ", jsonDoc["value"].GetString() );
+
 			pinVal	= EXP_LED_CMD_DISABLE_LED;
 			if ( strcmp("true", jsonDoc["value"].GetString() ) == 0 )	{
 				pinVal 	= EXP_LED_CMD_ENABLE_LED;
 			}
 		}
 		else if ( jsonDoc["value"].IsBool() )	{
+			if (verbosityLevel > 0) printf("Found value element: '%s', ", (jsonDoc["value"].GetBool() ? "true" : "false") );
+
 			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
 		}
 		else {
@@ -69,6 +73,8 @@ int ExpLed::_FunctionSetColor (void)
 
 		// select the pin based on the color
 		if ( jsonDoc["color"].IsString() )	{
+			if (verbosityLevel > 0) printf("found color element: '%s' \n", jsonDoc["color"].GetString() );
+
 			if( strcmp(EXP_LED_COLOR_R_STRING, jsonDoc["color"].GetString() ) == 0 )	{
 				pinId 	= EXP_LED_COLOR_R_PIN_ID;
 			}
@@ -145,7 +151,7 @@ int ExpLed::_FunctionSet (void)
 	if ( jsonDoc.HasMember("value")  )	{
 		
 
-		//if (bVerboseMode) printf("FOUND value element, data is '%s'!\n", hexValue.c_str() );
+		//if (verbosityLevel > 0) printf("FOUND value element, data is '%s'!\n", hexValue.c_str() );
 	}
 
 

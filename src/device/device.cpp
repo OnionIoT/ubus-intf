@@ -1,4 +1,4 @@
-#include <device.h>
+#include <device/device.h>
 
 Device::Device(void)
 {

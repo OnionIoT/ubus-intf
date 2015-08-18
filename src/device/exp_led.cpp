@@ -1,4 +1,4 @@
-#include <exp_led.h>
+#include <device/exp_led.h>
 
 ExpLed::ExpLed(void)
 {
@@ -47,6 +47,7 @@ int ExpLed::_FunctionSetColor (void)
 	std::string	pinVal;
 	char		*pinCmd;
 
+
 	// Check that correct keys have been passed
 	if ( 	jsonDoc.HasMember("value") && 
 			jsonDoc.HasMember("color")
@@ -54,13 +55,13 @@ int ExpLed::_FunctionSetColor (void)
 	{
 		// select the pin command based on the value
 		if ( jsonDoc["value"].IsString() ) 	{
-			pinVal	= EXP_LED_DISABLE_LED;
+			pinVal	= EXP_LED_CMD_DISABLE_LED;
 			if ( strcmp("true", jsonDoc["value"].GetString() ) == 0 )	{
-				pinVal 	= EXP_LED_ENABLE_LED;
+				pinVal 	= EXP_LED_CMD_ENABLE_LED;
 			}
 		}
 		else if ( jsonDoc["value"].IsBool() )	{
-			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_ENABLE_LED : EXP_LED_DISABLE_LED);
+			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
 		}
 		else {
 			status = 1;

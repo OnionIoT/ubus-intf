@@ -1,12 +1,13 @@
 #ifndef _EXP_LED_H_
 #define _EXP_LED_H_
 
-#include <device.h>
+#include <device/device.h>
 
 #define 	EXP_LED_CTRL_CMD			"gpioctl"
 
-#define 	EXP_LED_ENABLE_LED			"dirout-low"
-#define 	EXP_LED_DISABLE_LED			"dirout-high"
+#define 	EXP_LED_CMD_ENABLE_LED		"dirout-low"
+#define 	EXP_LED_CMD_DISABLE_LED		"dirout-high"
+#define		EXP_LED_CMD_GET_VALUE		"get"
 
 #define 	EXP_LED_COLOR_R_STRING		"red"
 #define 	EXP_LED_COLOR_G_STRING		"green"

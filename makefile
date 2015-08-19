@@ -3,6 +3,7 @@
 CXX := g++
 # CXX := clang --analyze # and comment out the linker last line for sanity
 SRCDIR := src
+INCDIR := include
 BUILDDIR := build
 TARGET := bin/ubus_intf
  
@@ -11,7 +12,7 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CXXFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
-INC := -I include
+INC := $(shell find $(INCDIR) -type d -maxdepth 1 -exec echo -I {}  \;)
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p bin
@@ -25,6 +26,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 clean:
 	@echo " Cleaning..."; 
 	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+
+bla:
+	@echo "$(BLA)"
 
 # Tests
 tester:

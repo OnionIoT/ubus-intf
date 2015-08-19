@@ -9,6 +9,7 @@
 
 #include <device/device.h>
 #include <device/exp_led.h>
+#include <device/gpio.h>
 
 
 

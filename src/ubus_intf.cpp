@@ -3,7 +3,7 @@
 static const char * device_types[] = {
 	"expled",
 	"gpio",
-};	
+};		
 
 int main(int argc, char* argv[])
 {
@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
 	rapidjson::Document jsonDoc;
 
 	ExpLed 	expLedObj;
+	Gpio 	gpioObj;
 
 
 	//// initialization
@@ -27,6 +28,9 @@ int main(int argc, char* argv[])
 	// class initialization
 	expLedObj.SetVerbosity(UBUS_INTF_VERBOSE);
 	expLedObj.SetDebugMode(UBUS_INTF_DEBUG);
+
+	gpioObj.SetVerbosity(UBUS_INTF_VERBOSE);
+	gpioObj.SetDebugMode(UBUS_INTF_DEBUG);
 	
 	// parse the command line arguments
 	for (int i = 1; i < argc; i++) 	{
@@ -56,6 +60,10 @@ int main(int argc, char* argv[])
 	if (strcmp( device, "expled") == 0)	{
 		if (UBUS_INTF_VERBOSE) printf("expLed Object:\n\n");
 		expLedObj.Process(function, json);
+	}
+	else if (strcmp( device, "gpio") == 0)	{
+		if (UBUS_INTF_VERBOSE) printf("gpio Object:\n\n");
+		gpioObj.Process(function, json);
 	}
 
 

@@ -18,7 +18,7 @@ Device::~Device(void)
 //// public functions
 int Device::Process(char* function, char* json)
 {
-	int status		= 0;
+	int status		= EXIT_SUCCESS;
 
 	// parse the json
 	jsonDoc.Parse(json);
@@ -101,26 +101,25 @@ void Device::JsonAddMember(char* key, rapidjson::Value element)
 						);
 }
 
-// returns 1 if successfully parsed
 int Device::JsonGetBool(char *key, bool *output)
 {
-	int 	status	= 0;
+	int 	status	= EXIT_FAILURE;
 
 	// check if element with this key exists
 	if ( jsonDoc.HasMember( key )	) {
 		// check for the bool type
 		if ( jsonDoc[key].IsBool() )	{
-			status		= 1;
+			status		= EXIT_SUCCESS;
 			(*output) 	= jsonDoc[key].GetBool();
 		}
 		// check for the string type
 		else if ( jsonDoc[key].IsString() ) 	{
 			if ( strcmp("true", jsonDoc[key].GetString() ) == 0 )	{
-				status		= 1;
+				status		= EXIT_SUCCESS;
 				(*output) 	= true;
 			}
 			else if ( strcmp("false", jsonDoc[key].GetString() ) == 0 )	{
-				status		= 1;
+				status		= EXIT_SUCCESS;
 				(*output) 	= false;
 			}
 		}
@@ -131,18 +130,18 @@ int Device::JsonGetBool(char *key, bool *output)
 
 int Device::JsonGetInt(char *key, int *output)
 {
-	int 	status	= 0;
+	int 	status	= EXIT_FAILURE;
 
 	// check if element with this key exists
 	if ( jsonDoc.HasMember( key )	) {
 		// check for the bool type
 		if ( jsonDoc[key].IsInt() )	{
-			status		= 1;
+			status		= EXIT_SUCCESS;
 			(*output) 	= jsonDoc[key].GetInt();
 		}
 		// check for the string type
 		else if ( jsonDoc[key].IsString() ) 	{
-			status 		= 1;
+			status 		= EXIT_SUCCESS;
 			(*output)	= atoi ( jsonDoc[key].GetString() );
 		}
 	}
@@ -152,18 +151,18 @@ int Device::JsonGetInt(char *key, int *output)
 
 int Device::JsonGetDouble(char *key, double *output)
 {
-	int 	status	= 0;
+	int 	status	= EXIT_FAILURE;
 
 	// check if element with this key exists
 	if ( jsonDoc.HasMember( key )	) {
 		// check for the bool type
 		if ( jsonDoc[key].IsInt() )	{
-			status		= 1;
+			status		= EXIT_SUCCESS;
 			(*output) 	= jsonDoc[key].GetDouble();
 		}
 		// check for the string type
 		else if ( jsonDoc[key].IsString() ) 	{
-			status 		= 1;
+			status 		= EXIT_SUCCESS;
 			(*output)	= atof ( jsonDoc[key].GetString() );
 		}
 	}
@@ -176,7 +175,7 @@ bool Device::JsonReadBool(char *key)
 {
 	bool 	ret;
 
-	if ( JsonGetBool(key, &ret) )	{
+	if ( JsonGetBool(key, &ret) == EXIT_SUCCESS)	{
 		return (ret);
 	}
 
@@ -187,7 +186,7 @@ int Device::JsonReadInt(char *key)
 {
 	int 	ret;
 
-	if ( JsonGetInt(key, &ret) )	{
+	if ( JsonGetInt(key, &ret) == EXIT_SUCCESS)	{
 		return (ret);
 	}
 
@@ -198,7 +197,7 @@ double Device::JsonReadDouble(char *key)
 {
 	double 	ret;
 
-	if ( JsonGetDouble(key, &ret) )	{
+	if ( JsonGetDouble(key, &ret) == EXIT_SUCCESS)	{
 		return (ret);
 	}
 

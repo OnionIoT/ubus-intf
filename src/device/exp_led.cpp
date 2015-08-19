@@ -109,9 +109,6 @@ int ExpLed::_FunctionSetColor (void)
 
 void ExpLed::_FunctionSetColorJson (int inputStatus)
 {
-	char 	buffer[1024];
-	int 	len;
-
 	rapidjson::Value 	element;
 
 

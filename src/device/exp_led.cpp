@@ -60,22 +60,8 @@ int ExpLed::_FunctionSetColor (void)
 		)
 	{
 		// select the pin command based on the value
-		if ( jsonDoc["value"].IsString() ) 	{
-			if (verbosityLevel > 0) printf("Found value element: '%s', ", jsonDoc["value"].GetString() );
-
-			pinVal	= EXP_LED_CMD_DISABLE_LED;
-			if ( strcmp("true", jsonDoc["value"].GetString() ) == 0 )	{
-				pinVal 	= EXP_LED_CMD_ENABLE_LED;
-			}
-		}
-		else if ( jsonDoc["value"].IsBool() )	{
-			if (verbosityLevel > 0) printf("Found value element: '%s', ", (jsonDoc["value"].GetBool() ? "true" : "false") );
-
-			pinVal	= ( jsonDoc["value"].GetBool() ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
-		}
-		else {
-			status = 1;
-		}
+		if (verbosityLevel > 0) printf("Found value element: '%s', ", (JsonReadBool("value") ? "true" : "false") );
+		pinVal	= ( JsonReadBool("value") ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
 
 		// select the pin based on the color
 		if ( jsonDoc["color"].IsString() )	{
@@ -94,6 +80,7 @@ int ExpLed::_FunctionSetColor (void)
 		else {
 			status = 1;
 		}
+
 
 
 		// make the system call
@@ -144,7 +131,7 @@ void ExpLed::_FunctionSetColorJson (int inputStatus)
 	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
 
 	// output the json object
-	PrintJsonObj();
+	JsonPrint();
 }
 
 int ExpLed::_FunctionSet (void)
@@ -233,7 +220,7 @@ int ExpLed::_FunctionStatus (void)
 	}
 
 	// output the json object
-	PrintJsonObj();
+	JsonPrint();
 
 
 	// clean-up
@@ -251,8 +238,6 @@ void ExpLed::_FunctionStatusJson(const char* color, bool value)
 	element.SetBool(value);
 
 	// add element to the json object
-	//char*	holder = new char [1024];
-	//strcpy(holder, color);
 	jsonOut.AddMember	(	rapidjson::Value(color, jsonOut.GetAllocator()).Move(), 
 							element, 
 							jsonOut.GetAllocator() 

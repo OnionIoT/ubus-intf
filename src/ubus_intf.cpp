@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 			
 			if (UBUS_INTF_VERBOSE) printf("parsing json: %s\n", json);
 		}
-	}
+	}	
 
 	// check device against list of existing devices
 	/* TODO: make this cleaner */

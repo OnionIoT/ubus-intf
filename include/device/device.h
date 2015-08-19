@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -21,17 +22,31 @@ public:
 
 	int 			Process				(char* function, char* json);
 
-	void 			PrintJsonObj		(void);
+	void			SetDebugMode				(bool input);
+	
+
+protected:
+	// protected functions
+	void 			SetDebugSystemCommandResp	(char input[]);
 
 	void			SystemCommandExec	(char* cmd);
 	void			SystemCommandRead	(char* cmd, char* response);
 
-	void			SetDebugMode				(bool input);
-	void 			SetDebugSystemCommandResp	(char input[]);
 
-protected:
-	// protected functions
+	void 			JsonPrint		(void);
+	void 			JsonAddMember	(char* key, rapidjson::Value element);
 
+	int 			JsonGetBool		(char *key, bool *output);
+	int 			JsonGetInt		(char *key, int *output);
+	int 			JsonGetDouble	(char *key, double *output);
+
+	bool 			JsonReadBool	(char *key);
+	int 			JsonReadInt		(char *key);
+	double			JsonReadDouble	(char *key);
+
+	
+
+	
 
 	// protected members
 	rapidjson::Document 	jsonDoc;

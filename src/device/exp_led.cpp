@@ -16,7 +16,7 @@ ExpLed::~ExpLed(void)
 //// public functions
 int ExpLed::_Process(char* function)
 {
-	int status		= 0;
+	int status		= EXIT_SUCCESS;
 
 	// check which function is to be used
 	if ( strcmp(function, EXP_LED_FUNCTION_SET_COLOR) == 0 )	{
@@ -29,36 +29,47 @@ int ExpLed::_Process(char* function)
 		status = _FunctionStatus();
 	}
 
+	return (status);
+}
+
+int ExpLed::_WriteGpio(int pin, int value)
+{
+	int status 	= EXIT_SUCCESS;
+
+	if (verbosityLevel > 0)	printf("ExpLed: writing to pin %d, value %d\n", pin, value);
+
+	// setup the gpio object based on the expled object settings 
+	gpioObj.SetVerbosity(verbosityLevel);
+	gpioObj.SetDebugMode(bDebugMode);
+
+	// use the gpio class
+	gpioObj.SetPinNumber(pin);
+	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
+	if ((gpioObj.SetPin(value)) < 0)	return EXIT_FAILURE;
+	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
 
 	return (status);
 }
 
-
-//// private functions 
-void ExpLed::_FunctionSetColorJson (int inputStatus)
+int ExpLed::_ReadGpio(int pin, int *value)
 {
-	rapidjson::Value 	element;
+	int status 	= EXIT_SUCCESS;
 
+	if (verbosityLevel > 0)	printf("ExpLed: reading pin %d\n", pin);
 
-	// setup the json object
-	jsonOut.SetObject();
+	// setup the gpio object based on the expled object settings 
+	gpioObj.SetVerbosity(verbosityLevel);
+	gpioObj.SetDebugMode(bDebugMode);
 
-	// populate the value
-	if (inputStatus == EXIT_SUCCESS)
-	{
-		element.SetString("true");
-	}
-	else {
-		element.SetString("false");
-	}
+	// use the gpio class
+	gpioObj.SetPinNumber(pin);
+	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
+	if ((gpioObj.GetPin(value)) < 0)	return EXIT_FAILURE;
+	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
 
-	// add element to the json object
-	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
-
-	// output the json object
-	JsonPrint();
+	return (status);
 }
-
+//// private functions 
 int ExpLed::_FunctionSet (void)
 {
 	int status 	= EXIT_SUCCESS;
@@ -88,107 +99,77 @@ int ExpLed::_FunctionSet (void)
 	}
 
 	// generate the json return
-	_FunctionSetColorJson(status);
+	_GenerateOutJson(status);
 
-
-	return (status);
-}
-
-int ExpLed::_WriteGpio(int pin, int value)
-{
-	int status 	= EXIT_SUCCESS;
-
-	// setup the gpio object based on the expled object settings 
-	gpioObj.SetVerbosity(verbosityLevel);
-	gpioObj.SetDebugMode(true);
-
-	// use the gpio class
-	gpioObj.SetPinNumber(pin);
-	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
-	if ((gpioObj.SetPin(value)) < 0)	return EXIT_FAILURE;
-	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
 
 	return (status);
 }
 
 int ExpLed::_FunctionStatus (void)
 {
-	int 	status 	= 0;
+	int 	status 	= EXIT_SUCCESS;
 
-	bool 	ledValue[EXP_LED_COLOR_ID_NUM];
+	int 	colorVals[EXP_LED_COLOR_ID_NUM];
 
-	char*	pinCmd		= new char[1024];
-	char*	pinValue	= new char[1024];
-
-	/* TODO: move these to be available globally */
 	const int 	pins[EXP_LED_COLOR_ID_NUM]	= 	{	
 		EXP_LED_COLOR_R_PIN_ID,
 		EXP_LED_COLOR_G_PIN_ID,
 		EXP_LED_COLOR_B_PIN_ID
 	};
 
-	const char	*colors[EXP_LED_COLOR_ID_NUM]	= 	{
-		EXP_LED_COLOR_R_STRING,
-		EXP_LED_COLOR_G_STRING,
-		EXP_LED_COLOR_B_STRING
-	};
+	// read the GPIO values
+	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_R], &(colorVals[EXP_LED_COLOR_R_PIN_ID]) );
+	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_G], &(colorVals[EXP_LED_COLOR_G_PIN_ID]) );
+	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_B], &(colorVals[EXP_LED_COLOR_B_PIN_ID]) );
 
+
+/*	// setup the json object
+	jsonOut.SetObject();
+
+	// write the values to the json
+	_GenerateJsonMember( EXP_LED_COLOR_R_STRING, colorVals[EXP_LED_COLOR_R_PIN_ID] );
+	_GenerateJsonMember( EXP_LED_COLOR_G_STRING, colorVals[EXP_LED_COLOR_G_PIN_ID] );
+	_GenerateJsonMember( EXP_LED_COLOR_B_STRING, colorVals[EXP_LED_COLOR_B_PIN_ID] );
+
+	// output the json object
+	JsonPrint();*/
+
+
+	return (status);
+}
+
+
+// json functions
+void ExpLed::_GenerateOutJson (int inputStatus)
+{
+	rapidjson::Value 	element;
 
 
 	// setup the json object
 	jsonOut.SetObject();
 
-	// loop through each of the colors
-	for (int i = 0; i < EXP_LED_COLOR_ID_NUM; i++)	{
-		// empty the text
-		memset(&pinCmd[0], 0, sizeof(pinCmd));
-		memset(&pinValue[0], 0, sizeof(pinValue));
-
-		// generate the gpio read command
-		sprintf	(pinCmd, "%s %s %d | %s | %s\n", 	
-					EXP_LED_CTRL_CMD, 
-					EXP_LED_CMD_GET_VALUE, 
-					pins[i], 
-					EXP_LED_CTRL_CMD_FIND_VAL,
-					EXP_LED_CTRL_CMD_ISO_VAL
-				);
-
-		// run the command and get the response
-		if (bDebugMode)		SetDebugSystemCommandResp("LOW");
-		SystemCommandRead	(pinCmd, pinValue);
-
-		if (verbosityLevel > 0)	printf("GPIO response is '%s'\n", pinValue);
-
-		// parse the command
-		ledValue[i]	= false;
-		if ( strcmp(pinValue, EXP_LED_CMD_ON_VALUE) == 0 )	{
-			ledValue[i]	= true;
-		}
-		else if ( strcmp(pinValue, EXP_LED_CMD_ON_VALUE) == 0 )	{
-			ledValue[i]	= false;
-		}
-
-		// add this result to the json object
-		_FunctionStatusJson( colors[i], ledValue[i] );
+	// populate the value
+	if (inputStatus == EXIT_SUCCESS)
+	{
+		element.SetString("true");
 	}
+	else {
+		element.SetString("false");
+	}
+
+	// add element to the json object
+	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
 
 	// output the json object
 	JsonPrint();
-
-
-	// clean-up
-	delete[]	pinCmd;
-	delete[]	pinValue;
-
-	return (status);
 }
 
-void ExpLed::_FunctionStatusJson(const char* color, bool value)
+void ExpLed::_GenerateJsonMember(char* color, int value)
 {
 	rapidjson::Value 	element;
 
 	// set the element value
-	element.SetBool(value);
+	element.SetInt(value);
 
 	// add element to the json object
 	jsonOut.AddMember	(	rapidjson::Value(color, jsonOut.GetAllocator()).Move(), 

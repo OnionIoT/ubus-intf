@@ -88,6 +88,42 @@ int Gpio::SetPin(int value, bool bLogicalVaue)
 	return (status);
 }
 
+int Gpio::GetPin(int *value, bool bLogicalVaue)
+{
+	int status 		= EXIT_SUCCESS;
+	int rdVal;
+
+	// read the pin value
+	if (!bDebugMode) {
+		if ((rdVal = gpio_get_value(gpioPin)) < 0) {
+			if (verbosityLevel > 0) printf("gpio_get_value");
+			status = EXIT_FAILURE;
+		}
+	}
+	else {
+		rdVal = 1;
+	}
+
+	// take active-low into account
+	//		al 	pin 	value
+	//		0	0		0
+	//		0	1		1
+	//		1	0		1
+	//		1	1		0
+	// => logical value = al ^ pin
+	if (bLogicalVaue) {
+		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
+		rdVal 	= (bActiveLow ^ rdVal);
+	}
+
+	// return the value
+	if (verbosityLevel > 0) printf("Read GPIO ID '%d': '%d'\n", gpioPin, rdVal);
+	(*value) = rdVal;
+
+
+	return (status);
+}
+
 
 bool Gpio::GetActiveLow(void)
 {
@@ -261,25 +297,7 @@ int Gpio::_FunctionGet(void)
 	int status 		= EXIT_SUCCESS;
 	int value;
 
-	// read the pin value
-	if (!bDebugMode) {
-		if ((value = gpio_get_value(gpioPin)) < 0) {
-			if (verbosityLevel > 0) printf("gpio_get_value");
-			status = EXIT_FAILURE;
-		}
-	}
-	else {
-		value = 1;
-	}
-
-	// take active-low into account
-	//		al 	pin 	value
-	//		0	0		0
-	//		0	1		1
-	//		1	0		1
-	//		1	1		0
-	// => logical value = al ^ pin
-	value 	= (bActiveLow ^ value);
+	status 	= GetPin(&value);
 
 	// generate the output json
 	_GenerateGetJson(value);

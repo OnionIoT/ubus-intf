@@ -26,7 +26,6 @@ int Device::Process(char* function, char* json)
 	// call the private process function
 	status 	= _Process(function);
 
-
 	return (status);
 }
 

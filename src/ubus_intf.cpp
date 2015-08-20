@@ -67,7 +67,6 @@ int main(int argc, char* argv[])
 		gpioObj.Process(function, json);
 	}
 
-
 	//// clean-up
 	// free dynamically allocated memory
 	delete[] device;

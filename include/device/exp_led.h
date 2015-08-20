@@ -48,10 +48,11 @@ private:
 	int 	_FunctionSet		(void);
 	int		_FunctionStatus		(void);
 
-	void 	_FunctionSetColorJson	(int inputStatus);
-	void 	_FunctionStatusJson		(const char* color, bool value);
+	void 	_GenerateOutJson	(int inputStatus);
+	void 	_GenerateJsonMember	(char* color, int value);
 
 	int 	_WriteGpio			(int pin, int value);
+	int 	_ReadGpio			(int pin, int *value);
 
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];

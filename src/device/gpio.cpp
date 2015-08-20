@@ -48,6 +48,7 @@ int Gpio::SetPin(int value, bool bLogicalVaue)
 
 	// adjust for active-low pins
 	if (bLogicalVaue) {
+		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
 		value = bActiveLow ? !value : value;
 	}
 

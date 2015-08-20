@@ -14,6 +14,8 @@ Gpio::~Gpio(void)
 //// public functions
 int Gpio::Init(void)
 {
+	int status 	= EXIT_SUCCESS;
+
 	if (!bDebugMode) 	{
 		// check that gpio is free
 		if ((bRequest = gpio_is_requested(gpioPin)) < 0)
@@ -32,10 +34,19 @@ int Gpio::Init(void)
 		}
 
 		// find if pin is active-low
-		if ((bActiveLow = gpio_get_activelow(gpioPin)) < 0)
+		status = _GetActiveLow();
+	}
+
+	return (status);
+}
+
+int Gpio::Exit(void)
+{
+	// release the pin
+	if (!bRequest && !bDebugMode) {
+		if (gpio_free(gpioPin) < 0)
 		{
-			if (verbosityLevel > 0) printf("gpio_get_activelow");
-			return EXIT_FAILURE;
+			if (verbosityLevel > 0) printf("gpio_free");
 		}
 	}
 
@@ -65,17 +76,52 @@ int Gpio::SetPin(int value, bool bLogicalVaue)
 	return (status);
 }
 
-int Gpio::Exit(void)
+
+bool Gpio::GetActiveLow(void)
 {
-	// release the pin
-	if (!bRequest && !bDebugMode) {
-		if (gpio_free(gpioPin) < 0)
+	_GetActiveLow();
+	return (bActiveLow);
+}
+
+int Gpio::_GetActiveLow(void)
+{
+	// find if pin is active-low
+	if (!bDebugMode) {
+		if ((bActiveLow = gpio_get_activelow(gpioPin)) < 0)
 		{
-			if (verbosityLevel > 0) printf("gpio_free");
+			if (verbosityLevel > 0) printf("gpio_get_activelow");
+			return EXIT_FAILURE;
 		}
 	}
+	else {
+		bActiveLow = false;
+	}
 
-	return (EXIT_SUCCESS);
+	return EXIT_SUCCESS;
+}
+
+int Gpio::SetActiveLow(bool activeLow)
+{
+	return ( _SetActiveLow(activeLow) );
+}
+
+int Gpio::_SetActiveLow(bool activeLow)
+{
+	int activeLowInt	= (activeLow ? 1 : 0);
+
+	// find if pin is active-low
+	if (!bDebugMode) {
+		if ((gpio_set_activelow(gpioPin, activeLowInt)) < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_set_activelow");
+			return EXIT_FAILURE;
+		}
+	}
+	else {
+		if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to active-low '%d'\n", gpioPin, activeLowInt);
+	}
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -109,6 +155,12 @@ int Gpio::_Process(char* function)
 		}
 		else if (strcmp(function, GPIO_FUNCTION_GET) == 0 )	{
 			status = _FunctionGet();
+		}
+		else if (strcmp(function, GPIO_FUNCTION_GET_AL) == 0 )	{
+			status = _FunctionGetActiveLow();
+		}
+		else if (strcmp(function, GPIO_FUNCTION_SET_AL) == 0 )	{
+			status = _FunctionSetActiveLow();
 		}
 		else if (strcmp(function, GPIO_FUNCTION_STATUS) == 0 )	{
 			status = _FunctionStatus();
@@ -187,7 +239,7 @@ int Gpio::_FunctionSetValue(void)
 	int status 		= EXIT_SUCCESS;
 	int value;
 
-	// find the value
+	// json - find the value
 	if ((status = JsonGetInt("value", &value)) < 0)	{
 		if (verbosityLevel > 0) printf("invalid json int for value\n");
 		return EXIT_FAILURE;
@@ -233,12 +285,56 @@ int Gpio::_FunctionGet(void)
 	return (status);
 }
 
-void Gpio::_GenerateGetJson(int logicalValue)
+int Gpio::_FunctionGetActiveLow(void)
+{
+	int status 		= EXIT_SUCCESS;
+	int value;
+
+	// read the active low value
+	_GetActiveLow();
+
+	// generate the output json
+	_GenerateGetActiveLowJson();
+
+	return (status);
+}
+
+int Gpio::_FunctionSetActiveLow(void)
+{
+	int 	status 		= EXIT_SUCCESS;
+	bool 	activeLow;
+
+	// json - find the activelow setting
+	if ((status = JsonGetBool("activelow", &activeLow)) < 0)	{
+		if (verbosityLevel > 0) printf("invalid json bool for activelow\n");
+		return EXIT_FAILURE;
+	}
+
+	// set the active low value
+	status = _SetActiveLow(activeLow);
+
+	// generate the output json
+	_GenerateJsonOut(status);
+
+	return (status);
+}
+
+int Gpio::_FunctionStatus(void)
+{
+	int status 		= EXIT_SUCCESS;
+	int value;
+
+	// set the pin
+	status 	= SetPin(value);
+
+	return (status);
+}
+
+
+// json functions
+void Gpio::_GenerateJsonPinId(void)
 {
 	rapidjson::Value 	element;
-
-	// setup the json object
-	jsonOut.SetObject();
 
 	//// set the pin number
 	// set the element value
@@ -249,6 +345,17 @@ void Gpio::_GenerateGetJson(int logicalValue)
 							element, 
 							jsonOut.GetAllocator() 
 						);
+}
+
+void Gpio::_GenerateGetJson(int logicalValue)
+{
+	rapidjson::Value 	element;
+
+	// setup the json object
+	jsonOut.SetObject();
+
+	//// set the pin number
+	_GenerateJsonPinId();
 
 	//// set the pin value
 	// set the element value
@@ -265,16 +372,34 @@ void Gpio::_GenerateGetJson(int logicalValue)
 	JsonPrint();
 }
 
-int Gpio::_FunctionStatus(void)
+void Gpio::_GenerateGetActiveLowJson(void)
 {
-	int status 		= EXIT_SUCCESS;
-	int value;
+	rapidjson::Value 	element;
 
-	// set the pin
-	status 	= SetPin(value);
+	// setup the json object
+	jsonOut.SetObject();
 
-	return (status);
+	//// set the pin number
+	_GenerateJsonPinId();
+
+	//// set the activelow value
+	// set the element value
+	element.SetBool((bool)bActiveLow);
+
+	// add element to the json object
+	jsonOut.AddMember	(	rapidjson::Value("activelow", jsonOut.GetAllocator()).Move(), 
+							element, 
+							jsonOut.GetAllocator() 
+						);
+
+
+	// output the json object
+	JsonPrint();
 }
+
+
+
+
 
 
 

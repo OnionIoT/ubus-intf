@@ -29,6 +29,12 @@ then
 	elif [ $function == "get" ]
 	then
 		./bin/ubus_intf -device gpio -function get -json '{"pin":3}'
+	elif [ $function == "get_activelow" ]
+	then
+		./bin/ubus_intf -device gpio -function get_activelow -json '{"pin":4}'
+	elif [ $function == "set_activelow" ]
+	then
+		./bin/ubus_intf -device gpio -function set_activelow -json '{"pin":4, "activelow":false}'
 	elif [ $function == "status" ]
 	then
 		./bin/ubus_intf -device gpio -function status -json ''

@@ -126,6 +126,16 @@ int Gpio::_SetActiveLow(bool activeLow)
 
 
 //// private functions
+
+// _Process function
+// Basic program flow:
+//	- Find Pin Number from JSON
+//	- Initialize
+//		- check that pin is not in use
+// 		- reserve the pin
+//		- find if active-low
+//	- Perform specified action
+//	- Release the pin
 int Gpio::_Process(char* function)
 {
 	int status		= EXIT_SUCCESS;
@@ -173,30 +183,6 @@ int Gpio::_Process(char* function)
 
 
 	return (status);
-}
-
-void Gpio::_GenerateJsonOut(int inputStatus)
-{
-	rapidjson::Value 	element;
-
-
-	// setup the json object
-	jsonOut.SetObject();
-
-	// populate the value
-	if (inputStatus == EXIT_SUCCESS)
-	{
-		element.SetString("true");
-	}
-	else {
-		element.SetString("false");
-	}
-
-	// add element to the json object
-	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
-
-	// output the json object
-	JsonPrint();
 }
 
 // set the pin to logical 1
@@ -345,6 +331,30 @@ void Gpio::_GenerateJsonPinId(void)
 							element, 
 							jsonOut.GetAllocator() 
 						);
+}
+
+void Gpio::_GenerateJsonOut(int inputStatus)
+{
+	rapidjson::Value 	element;
+
+
+	// setup the json object
+	jsonOut.SetObject();
+
+	// populate the value
+	if (inputStatus == EXIT_SUCCESS)
+	{
+		element.SetString("true");
+	}
+	else {
+		element.SetString("false");
+	}
+
+	// add element to the json object
+	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
+
+	// output the json object
+	JsonPrint();
 }
 
 void Gpio::_GenerateGetJson(int logicalValue)

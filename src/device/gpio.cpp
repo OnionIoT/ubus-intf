@@ -2,7 +2,7 @@
 
 Gpio::Gpio(void)
 {
-	// nothing for now
+	Reset();
 }
 
 Gpio::~Gpio(void)
@@ -10,6 +10,13 @@ Gpio::~Gpio(void)
 	// nothing for now
 }
 
+void Gpio::Reset(void)
+{
+	// setup default values
+	gpioPin 	= 0;
+	bRequest	= 0;
+	bActiveLow	= 0;
+}
 
 //// public functions
 int Gpio::Init(void)
@@ -31,11 +38,11 @@ int Gpio::Init(void)
 				if (verbosityLevel > 0) printf("gpio_request");
 				return EXIT_FAILURE;
 			}
-		}
-
-		// find if pin is active-low
-		status = _GetActiveLow();
+		}	
 	}
+
+	// find if pin is active-low
+	status = _GetActiveLow();
 
 	return (status);
 }
@@ -49,6 +56,13 @@ int Gpio::Exit(void)
 			if (verbosityLevel > 0) printf("gpio_free");
 		}
 	}
+
+	return (EXIT_SUCCESS);
+}
+
+int Gpio::SetPinNumber(int pinNum)
+{
+	gpioPin 	= pinNum;
 
 	return (EXIT_SUCCESS);
 }
@@ -91,8 +105,9 @@ int Gpio::_GetActiveLow(void)
 			return EXIT_FAILURE;
 		}
 	}
-	else {
+	else {		
 		bActiveLow = false;
+		if (verbosityLevel > 0) printf("Active-low is '%s'\n", (bActiveLow ? "true" : "false") );
 	}
 
 	return EXIT_SUCCESS;
@@ -136,6 +151,11 @@ int Gpio::_Process(char* function)
 {
 	int status		= EXIT_SUCCESS;
 
+
+	// Check that json has been parsed
+	if ( !jsonDoc.IsObject() )	{
+		return EXIT_FAILURE;
+	}
 
 	// find the pin id
 	if (JsonGetInt("pin", &gpioPin) < 0)	{

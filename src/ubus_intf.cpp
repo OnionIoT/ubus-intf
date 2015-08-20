@@ -33,24 +33,25 @@ int main(int argc, char* argv[])
 	gpioObj.SetDebugMode(UBUS_INTF_DEBUG);
 	
 	// parse the command line arguments
+	if (UBUS_INTF_VERBOSE) printf("Parsing arguments:\n");
 	for (int i = 1; i < argc; i++) 	{
 		if ( strcmp(argv[i], "-device") == 0 )	{
 			// get the device name
 			strcpy( device, argv[++i] );
 			
-			if (UBUS_INTF_VERBOSE) printf("parsing device: %s\n", device);
+			if (UBUS_INTF_VERBOSE) printf("\tparsing device: %s\n", device);
 		}
 		else if ( strcmp(argv[i], "-function") == 0 )	{
 			// get the function name
 			strcpy( function, argv[++i] );
 			
-			if (UBUS_INTF_VERBOSE) printf("parsing function: %s\n", function);
+			if (UBUS_INTF_VERBOSE) printf("\tparsing function: %s\n", function);
 		}	
 		else if ( strcmp(argv[i], "-json") == 0 )	{
 			// get the json
 			strcpy( json, argv[++i] );
 			
-			if (UBUS_INTF_VERBOSE) printf("parsing json: %s\n", json);
+			if (UBUS_INTF_VERBOSE) printf("\tparsing json: %s\n", json);
 		}
 	}	
 

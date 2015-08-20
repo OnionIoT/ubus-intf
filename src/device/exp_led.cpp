@@ -4,8 +4,8 @@ ExpLed::ExpLed(void)
 {
 	// populate pin array
 	pins[EXP_LED_COLOR_ID_R]	= EXP_LED_COLOR_R_PIN_ID;
-	pins[EXP_LED_COLOR_ID_G]	= EXP_LED_COLOR_R_PIN_ID;
-	pins[EXP_LED_COLOR_ID_B]	= EXP_LED_COLOR_R_PIN_ID;
+	pins[EXP_LED_COLOR_ID_G]	= EXP_LED_COLOR_G_PIN_ID;
+	pins[EXP_LED_COLOR_ID_B]	= EXP_LED_COLOR_B_PIN_ID;
 }
 
 ExpLed::~ExpLed(void)
@@ -35,78 +35,6 @@ int ExpLed::_Process(char* function)
 
 
 //// private functions 
-
-int ExpLed::_FunctionSetColor (void)
-{
-	int status 	= 0;
-
-	std::string	colorValue;
-	std::string	ledValue;
-
-	int			pinId;
-	std::string	pinVal;
-	char		*pinCmd;
-
-
-	// Check that json has been parsed
-	if ( !jsonDoc.IsObject() )	{
-		return 1;
-	}
-
-
-	// Check that correct keys have been passed
-	if ( 	jsonDoc.HasMember("value") && 
-			jsonDoc.HasMember("color")
-		)
-	{
-		// select the pin command based on the value
-		if (verbosityLevel > 0) printf("Found value element: '%s', ", (JsonReadBool("value") ? "true" : "false") );
-		pinVal	= ( JsonReadBool("value") ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
-
-		// select the pin based on the color
-		if ( jsonDoc["color"].IsString() )	{
-			if (verbosityLevel > 0) printf("found color element: '%s' \n", jsonDoc["color"].GetString() );
-
-			if( strcmp(EXP_LED_COLOR_R_STRING, jsonDoc["color"].GetString() ) == 0 )	{
-				pinId 	= EXP_LED_COLOR_R_PIN_ID;
-			}
-			else if( strcmp(EXP_LED_COLOR_G_STRING, jsonDoc["color"].GetString() ) == 0 )	{
-				pinId 	= EXP_LED_COLOR_G_PIN_ID;
-			}
-			else if( strcmp(EXP_LED_COLOR_B_STRING, jsonDoc["color"].GetString() ) == 0 )	{
-				pinId 	= EXP_LED_COLOR_B_PIN_ID;
-			}
-		}
-		else {
-			status = 1;
-		}
-
-
-
-		// make the system call
-		if (status == 0)	{
-			// generate the command
-			pinCmd	= new char [1024];
-			sprintf(pinCmd, "%s %s %d\n", EXP_LED_CTRL_CMD, pinVal.c_str(), pinId);
-
-			// execute the command
-			SystemCommandExec(pinCmd);
-
-			delete[]	pinCmd;
-		}
-	}
-	else 
-	{
-		status 	= 1;
-	}
-
-	// generate the json return
-	_FunctionSetColorJson(status);
-
-
-	return (status);
-}
-
 void ExpLed::_FunctionSetColorJson (int inputStatus)
 {
 	rapidjson::Value 	element;
@@ -116,7 +44,7 @@ void ExpLed::_FunctionSetColorJson (int inputStatus)
 	jsonOut.SetObject();
 
 	// populate the value
-	if (inputStatus == 0)
+	if (inputStatus == EXIT_SUCCESS)
 	{
 		element.SetString("true");
 	}
@@ -133,27 +61,55 @@ void ExpLed::_FunctionSetColorJson (int inputStatus)
 
 int ExpLed::_FunctionSet (void)
 {
-	int status 	= 0;
+	int status 	= EXIT_SUCCESS;
+	int colorVals[EXP_LED_COLOR_ID_NUM];
 
-	std::string	hexValue;
-
+	const int 	pins[EXP_LED_COLOR_ID_NUM]	= 	{	
+		EXP_LED_COLOR_R_PIN_ID,
+		EXP_LED_COLOR_G_PIN_ID,
+		EXP_LED_COLOR_B_PIN_ID
+	};
 
 	// Check that json has been parsed
 	if ( !jsonDoc.IsObject() )	{
 		return 1;
 	}
 
-	// Check that correct key has been passed
-	if ( jsonDoc.HasMember("value")  )	{
-		
+	// JSON - find input values for the colors
+	status |= JsonGetInt(EXP_LED_COLOR_R_STRING, &(colorVals[EXP_LED_COLOR_ID_R]) );
+	status |= JsonGetInt(EXP_LED_COLOR_G_STRING, &(colorVals[EXP_LED_COLOR_ID_G]) );
+	status |= JsonGetInt(EXP_LED_COLOR_B_STRING, &(colorVals[EXP_LED_COLOR_ID_B]) );
 
-		//if (verbosityLevel > 0) printf("FOUND value element, data is '%s'!\n", hexValue.c_str() );
+	// write to the gpios
+	if (status == EXIT_SUCCESS) {
+		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_R], !colorVals[EXP_LED_COLOR_ID_R]);
+		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_G], !colorVals[EXP_LED_COLOR_ID_G]);
+		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_B], !colorVals[EXP_LED_COLOR_ID_B]);
 	}
+
+	// generate the json return
+	_FunctionSetColorJson(status);
 
 
 	return (status);
 }
 
+int ExpLed::_WriteGpio(int pin, int value)
+{
+	int status 	= EXIT_SUCCESS;
+
+	// setup the gpio object based on the expled object settings 
+	gpioObj.SetVerbosity(verbosityLevel);
+	gpioObj.SetDebugMode(true);
+
+	// use the gpio class
+	gpioObj.SetPinNumber(pin);
+	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
+	if ((gpioObj.SetPin(value)) < 0)	return EXIT_FAILURE;
+	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
+
+	return (status);
+}
 
 int ExpLed::_FunctionStatus (void)
 {
@@ -241,7 +197,76 @@ void ExpLed::_FunctionStatusJson(const char* color, bool value)
 						);
 }
 
+int ExpLed::_FunctionSetColor (void)
+{
+	int status 	= 0;
 
+	/*std::string	colorValue;
+	std::string	ledValue;
+
+	int			pinId;
+	std::string	pinVal;
+	char		*pinCmd;
+
+
+	// Check that json has been parsed
+	if ( !jsonDoc.IsObject() )	{
+		return 1;
+	}
+
+
+	// Check that correct keys have been passed
+	if ( 	jsonDoc.HasMember("value") && 
+			jsonDoc.HasMember("color")
+		)
+	{
+		// select the pin command based on the value
+		if (verbosityLevel > 0) printf("Found value element: '%s', ", (JsonReadBool("value") ? "true" : "false") );
+		pinVal	= ( JsonReadBool("value") ? EXP_LED_CMD_ENABLE_LED : EXP_LED_CMD_DISABLE_LED);
+
+		// select the pin based on the color
+		if ( jsonDoc["color"].IsString() )	{
+			if (verbosityLevel > 0) printf("found color element: '%s' \n", jsonDoc["color"].GetString() );
+
+			if( strcmp(EXP_LED_COLOR_R_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_R_PIN_ID;
+			}
+			else if( strcmp(EXP_LED_COLOR_G_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_G_PIN_ID;
+			}
+			else if( strcmp(EXP_LED_COLOR_B_STRING, jsonDoc["color"].GetString() ) == 0 )	{
+				pinId 	= EXP_LED_COLOR_B_PIN_ID;
+			}
+		}
+		else {
+			status = 1;
+		}
+
+
+
+		// make the system call
+		if (status == 0)	{
+			// generate the command
+			pinCmd	= new char [1024];
+			sprintf(pinCmd, "%s %s %d\n", EXP_LED_CTRL_CMD, pinVal.c_str(), pinId);
+
+			// execute the command
+			SystemCommandExec(pinCmd);
+
+			delete[]	pinCmd;
+		}
+	}
+	else 
+	{
+		status 	= 1;
+	}
+
+	// generate the json return
+	_FunctionSetColorJson(status);*/
+
+
+	return (status);
+}
 
 
 

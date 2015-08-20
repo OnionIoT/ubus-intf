@@ -18,10 +18,14 @@ public:
 	Gpio(void);
 	~Gpio(void);
 
+	void 	Reset 			(void);
+
 	int 	Init			(void);
 	int 	Exit 			(void);
 
+	int 	SetPinNumber 	(int pinNum);
 	int 	SetPin 			(int value, bool bLogicalVaue = true);
+
 	bool 	GetActiveLow	(void);
 	int 	SetActiveLow	(bool activeLow);
 

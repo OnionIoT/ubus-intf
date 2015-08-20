@@ -7,7 +7,7 @@ if [ $device == "expled" ];
 then
 	if [ $function == "set" ]
 	then
-		./bin/ubus_intf -device expled -function set -json '{"value": "123"}'
+		./bin/ubus_intf -device expled -function set -json '{"red":1, "blue":0, "green":0}'
 	elif [ $function == "set_color" ]
 	then
 		./bin/ubus_intf -device expled -function set_color -json '{"color": "red", "value": "true"}'

@@ -2,6 +2,7 @@
 #define _EXP_LED_H_
 
 #include <device/device.h>
+#include <device/gpio.h>
 
 #define		EXP_LED_FUNCTION_SET_COLOR	"set_color"
 #define		EXP_LED_FUNCTION_SET 		"set"
@@ -50,8 +51,12 @@ private:
 	void 	_FunctionSetColorJson	(int inputStatus);
 	void 	_FunctionStatusJson		(const char* color, bool value);
 
+	int 	_WriteGpio			(int pin, int value);
+
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];
+
+	Gpio 	gpioObj;
 };
 
 #endif	// _EXP_LED_H_

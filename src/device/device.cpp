@@ -123,6 +123,9 @@ int Device::JsonGetBool(char *key, bool *output)
 			}
 		}
 	}
+	else {
+		(*output)	= false;
+	}
 
 	return (status);
 }
@@ -144,6 +147,9 @@ int Device::JsonGetInt(char *key, int *output)
 			(*output)	= atoi ( jsonDoc[key].GetString() );
 		}
 	}
+	else {
+		(*output)	= 0;
+	}
 
 	return (status);
 }
@@ -164,6 +170,9 @@ int Device::JsonGetDouble(char *key, double *output)
 			status 		= EXIT_SUCCESS;
 			(*output)	= atof ( jsonDoc[key].GetString() );
 		}
+	}
+	else {
+		(*output)	= 0.0f;
 	}
 
 	return (status);

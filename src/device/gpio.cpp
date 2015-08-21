@@ -110,9 +110,6 @@ int Gpio::_Process(char* function)
 	}
 	if (verbosityLevel > 0) printf("Using pin '%d'\n", gpioPin);
 
-	// initialize the gpio pin
-	_Init();
-
 
 	// check which function is to be used
 	if (status == EXIT_SUCCESS)	{
@@ -140,13 +137,11 @@ int Gpio::_Process(char* function)
 	}
 
 
-	// free the pin
-	_Exit();
-
-
 	return (status);
 }
 
+
+//// functions to be called by _Process
 // set the pin to logical 1
 // 	if active-high:	pin HIGH
 // 	if active-low:	pin LOW
@@ -155,7 +150,7 @@ int Gpio::_FunctionSet(void)
 	int status 		= EXIT_SUCCESS;
 
 	// set the pin
-	status 	= _SetPin(1);
+	status 	= Write(gpioPin, 1);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -171,7 +166,7 @@ int Gpio::_FunctionClear(void)
 	int status 		= 0;
 
 	// set the pin
-	status 	= _SetPin(0);
+	status 	= Write(gpioPin, 0);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -194,7 +189,7 @@ int Gpio::_FunctionSetValue(void)
 	}
 
 	// set the pin
-	status 		= _SetPin(value);
+	status 		= Write(gpioPin, value);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -207,7 +202,7 @@ int Gpio::_FunctionGet(void)
 	int status 		= EXIT_SUCCESS;
 	int value;
 
-	status 	= _GetPin(&value);
+	status 	= Read(gpioPin, value);
 
 	// generate the output json
 	_GenerateGetJson(value);
@@ -254,14 +249,18 @@ int Gpio::_FunctionStatus(void)
 	int status 		= EXIT_SUCCESS;
 	int value;
 
-	// set the pin
-	status 	= _SetPin(value);
+	// read the pin
+	status 	= Read(gpioPin, value);
+
+	// read the active-low setting
+	
+		
 
 	return (status);
 }
 
 
-// json functions
+//// json functions
 void Gpio::_GenerateJsonPinId(void)
 {
 	rapidjson::Value 	element;

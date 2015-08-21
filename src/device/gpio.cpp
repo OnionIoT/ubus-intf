@@ -403,11 +403,15 @@ int Gpio::_SetPin(int value, bool bLogicalVaue)
 		value = bActiveLow ? !value : value;
 	}
 
-	// write the value to the pin
 	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to '%d'\n", gpioPin, value);
+
+	// convert value to GPIO readable
+	value = (value ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW);
+
+	// write the value to the pin	
 	if (!bDebugMode) {
-		if ((status = gpio_set_value(gpioPin, value)) < 0) {
-			if (verbosityLevel > 0) printf("gpio_set_value");
+		if ((status = gpio_direction_output(gpioPin, value)) < 0) {
+			if (verbosityLevel > 0) printf("gpio_direction_output");
 		}
 	}
 

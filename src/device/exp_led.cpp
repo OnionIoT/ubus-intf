@@ -2,10 +2,8 @@
 
 ExpLed::ExpLed(void)
 {
-	// populate pin array
-	pins[EXP_LED_COLOR_ID_R]	= EXP_LED_COLOR_R_PIN_ID;
-	pins[EXP_LED_COLOR_ID_G]	= EXP_LED_COLOR_G_PIN_ID;
-	pins[EXP_LED_COLOR_ID_B]	= EXP_LED_COLOR_B_PIN_ID;
+	// default values
+	Reset();
 }
 
 ExpLed::~ExpLed(void)
@@ -13,10 +11,24 @@ ExpLed::~ExpLed(void)
 	// nothing for now
 }
 
+void ExpLed::Reset(void)
+{
+	// populate pin array
+	pins[EXP_LED_COLOR_ID_R]	= EXP_LED_COLOR_R_PIN_ID;
+	pins[EXP_LED_COLOR_ID_G]	= EXP_LED_COLOR_G_PIN_ID;
+	pins[EXP_LED_COLOR_ID_B]	= EXP_LED_COLOR_B_PIN_ID;
+}
+
+
 //// public functions
 int ExpLed::_Process(char* function)
 {
 	int status		= EXIT_SUCCESS;
+
+	// setup the gpio object based on the expled object settings 
+	gpioObj.SetVerbosity(verbosityLevel);
+	gpioObj.SetDebugMode(bDebugMode);
+
 
 	// check which function is to be used
 	if ( strcmp(function, EXP_LED_FUNCTION_SET_COLOR) == 0 )	{
@@ -32,59 +44,18 @@ int ExpLed::_Process(char* function)
 	return (status);
 }
 
-int ExpLed::_WriteGpio(int pin, int value)
-{
-	int status 	= EXIT_SUCCESS;
 
-	if (verbosityLevel > 0)	printf("ExpLed: writing to pin %d, value %d\n", pin, value);
-
-	// setup the gpio object based on the expled object settings 
-	gpioObj.SetVerbosity(verbosityLevel);
-	gpioObj.SetDebugMode(bDebugMode);
-
-	// use the gpio class
-	gpioObj.SetPinNumber(pin);
-/*	if ((gpioObj._Init()) < 0)			return EXIT_FAILURE;
-	if ((gpioObj._SetPin(value)) < 0)	return EXIT_FAILURE;
-	if ((gpioObj._Exit()) < 0)			return EXIT_FAILURE;
-*/
-	return (status);
-}
-
-int ExpLed::_ReadGpio(int pin, int *value)
-{
-	int status 	= EXIT_SUCCESS;
-
-	if (verbosityLevel > 0)	printf("ExpLed: reading pin %d\n", pin);
-
-	// setup the gpio object based on the expled object settings 
-	gpioObj.SetVerbosity(verbosityLevel);
-	gpioObj.SetDebugMode(bDebugMode);
-
-	// use the gpio class
-	gpioObj.SetPinNumber(pin);
-/*	if ((gpioObj._Init()) < 0)			return EXIT_FAILURE;
-	if ((gpioObj._GetPin(value)) < 0)	return EXIT_FAILURE;
-	if ((gpioObj._Exit()) < 0)			return EXIT_FAILURE;
-*/
-	return (status);
-}
 //// private functions 
 int ExpLed::_FunctionSet (void)
 {
 	int status 	= EXIT_SUCCESS;
 	int colorVals[EXP_LED_COLOR_ID_NUM];
 
-	const int 	pins[EXP_LED_COLOR_ID_NUM]	= 	{	
-		EXP_LED_COLOR_R_PIN_ID,
-		EXP_LED_COLOR_G_PIN_ID,
-		EXP_LED_COLOR_B_PIN_ID
-	};
-
 	// Check that json has been parsed
 	if ( !jsonDoc.IsObject() )	{
 		return 1;
 	}
+
 
 	// JSON - find input values for the colors
 	status |= JsonGetInt(EXP_LED_COLOR_R_STRING, &(colorVals[EXP_LED_COLOR_ID_R]) );
@@ -93,9 +64,9 @@ int ExpLed::_FunctionSet (void)
 
 	// write to the gpios
 	if (status == EXIT_SUCCESS) {
-		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_R], !colorVals[EXP_LED_COLOR_ID_R]);
-		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_G], !colorVals[EXP_LED_COLOR_ID_G]);
-		status |= _WriteGpio(pins[EXP_LED_COLOR_ID_B], !colorVals[EXP_LED_COLOR_ID_B]);
+		status |= gpioObj.Write(pins[EXP_LED_COLOR_ID_R], !colorVals[EXP_LED_COLOR_ID_R]);
+		status |= gpioObj.Write(pins[EXP_LED_COLOR_ID_G], !colorVals[EXP_LED_COLOR_ID_G]);
+		status |= gpioObj.Write(pins[EXP_LED_COLOR_ID_B], !colorVals[EXP_LED_COLOR_ID_B]);
 	}
 
 	// generate the json return
@@ -111,71 +82,26 @@ int ExpLed::_FunctionStatus (void)
 
 	int 	colorVals[EXP_LED_COLOR_ID_NUM];
 
-	const int 	pins[EXP_LED_COLOR_ID_NUM]	= 	{	
-		EXP_LED_COLOR_R_PIN_ID,
-		EXP_LED_COLOR_G_PIN_ID,
-		EXP_LED_COLOR_B_PIN_ID
-	};
 
 	// read the GPIO values
-	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_R], &(colorVals[EXP_LED_COLOR_R_PIN_ID]) );
-	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_G], &(colorVals[EXP_LED_COLOR_G_PIN_ID]) );
-	status |= 	_ReadGpio(pins[EXP_LED_COLOR_ID_B], &(colorVals[EXP_LED_COLOR_B_PIN_ID]) );
-
-
-/*	// setup the json object
-	jsonOut.SetObject();
-
-	// write the values to the json
-	_GenerateJsonMember( EXP_LED_COLOR_R_STRING, colorVals[EXP_LED_COLOR_R_PIN_ID] );
-	_GenerateJsonMember( EXP_LED_COLOR_G_STRING, colorVals[EXP_LED_COLOR_G_PIN_ID] );
-	_GenerateJsonMember( EXP_LED_COLOR_B_STRING, colorVals[EXP_LED_COLOR_B_PIN_ID] );
-
-	// output the json object
-	JsonPrint();*/
-
-
-	return (status);
-}
-
-
-// json functions
-void ExpLed::_GenerateOutJson (int inputStatus)
-{
-	rapidjson::Value 	element;
+	status |= 	gpioObj.Read(pins[EXP_LED_COLOR_ID_R], colorVals[EXP_LED_COLOR_ID_R] );
+	status |= 	gpioObj.Read(pins[EXP_LED_COLOR_ID_G], colorVals[EXP_LED_COLOR_ID_G] );
+	status |= 	gpioObj.Read(pins[EXP_LED_COLOR_ID_B], colorVals[EXP_LED_COLOR_ID_B] );
 
 
 	// setup the json object
 	jsonOut.SetObject();
 
-	// populate the value
-	if (inputStatus == EXIT_SUCCESS)
-	{
-		element.SetString("true");
-	}
-	else {
-		element.SetString("false");
-	}
-
-	// add element to the json object
-	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
+	// write the values to the json
+	_GenerateJsonMember( EXP_LED_COLOR_R_STRING, colorVals[EXP_LED_COLOR_ID_R] );
+	_GenerateJsonMember( EXP_LED_COLOR_G_STRING, colorVals[EXP_LED_COLOR_ID_G] );
+	_GenerateJsonMember( EXP_LED_COLOR_B_STRING, colorVals[EXP_LED_COLOR_ID_B] );
 
 	// output the json object
 	JsonPrint();
-}
 
-void ExpLed::_GenerateJsonMember(char* color, int value)
-{
-	rapidjson::Value 	element;
 
-	// set the element value
-	element.SetInt(value);
-
-	// add element to the json object
-	jsonOut.AddMember	(	rapidjson::Value(color, jsonOut.GetAllocator()).Move(), 
-							element, 
-							jsonOut.GetAllocator() 
-						);
+	return (status);
 }
 
 int ExpLed::_FunctionSetColor (void)
@@ -248,6 +174,47 @@ int ExpLed::_FunctionSetColor (void)
 
 	return (status);
 }
+
+
+// json functions
+void ExpLed::_GenerateOutJson (int inputStatus)
+{
+	rapidjson::Value 	element;
+
+
+	// setup the json object
+	jsonOut.SetObject();
+
+	// populate the value
+	if (inputStatus == EXIT_SUCCESS)
+	{
+		element.SetString("true");
+	}
+	else {
+		element.SetString("false");
+	}
+
+	// add element to the json object
+	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
+
+	// output the json object
+	JsonPrint();
+}
+
+void ExpLed::_GenerateJsonMember(char* color, int value)
+{
+	rapidjson::Value 	element;
+
+	// set the element value
+	element.SetInt(value);
+
+	// add element to the json object
+	jsonOut.AddMember	(	rapidjson::Value(color, jsonOut.GetAllocator()).Move(), 
+							element, 
+							jsonOut.GetAllocator() 
+						);
+}
+
 
 
 

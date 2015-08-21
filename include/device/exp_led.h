@@ -40,6 +40,8 @@ public:
 	ExpLed(void);
 	~ExpLed(void);
 
+	void 	Reset				(void);
+
 private:
 	// private functions
 	int 	_Process			(char* function);
@@ -51,8 +53,6 @@ private:
 	void 	_GenerateOutJson	(int inputStatus);
 	void 	_GenerateJsonMember	(char* color, int value);
 
-	int 	_WriteGpio			(int pin, int value);
-	int 	_ReadGpio			(int pin, int *value);
 
 	// private members
 	int		pins[EXP_LED_COLOR_ID_NUM];

@@ -61,7 +61,7 @@ int Gpio::Read(int pinNum, int &value)
 	if ((_Init()) < 0)			return EXIT_FAILURE;
 
 	// read the pin
-	if ((_GetPin(&value)) < 0)	return EXIT_FAILURE;
+	if ((_GetPin(value)) < 0)	return EXIT_FAILURE;
 
 	// release the pin
 	if ((_Exit()) < 0)			return EXIT_FAILURE;
@@ -253,8 +253,8 @@ int Gpio::_FunctionStatus(void)
 	status 	= Read(gpioPin, value);
 
 	// read the active-low setting
-	
-		
+
+
 
 	return (status);
 }
@@ -414,20 +414,19 @@ int Gpio::_SetPin(int value, bool bLogicalVaue)
 	return (status);
 }
 
-int Gpio::_GetPin(int *value, bool bLogicalVaue)
+int Gpio::_GetPin(int &value, bool bLogicalVaue)
 {
 	int status 		= EXIT_SUCCESS;
-	int rdVal;
 
 	// read the pin value
 	if (!bDebugMode) {
-		if ((rdVal = gpio_get_value(gpioPin)) < 0) {
+		if ((value = gpio_get_value(gpioPin)) < 0) {
 			if (verbosityLevel > 0) printf("gpio_get_value");
 			status = EXIT_FAILURE;
 		}
 	}
 	else {
-		rdVal = 1;
+		value = 1;
 	}
 
 	// take active-low into account
@@ -439,12 +438,10 @@ int Gpio::_GetPin(int *value, bool bLogicalVaue)
 	// => logical value = al ^ pin
 	if (bLogicalVaue) {
 		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
-		rdVal 	= (bActiveLow ^ rdVal);
+		value 	= (bActiveLow ^ value);
 	}
 
-	// return the value
-	if (verbosityLevel > 0) printf("Read GPIO ID '%d': '%d'\n", gpioPin, rdVal);
-	(*value) = rdVal;
+	//if (verbosityLevel > 0) printf("Read GPIO ID '%d': '%d'\n", gpioPin, rdVal);
 
 
 	return (status);

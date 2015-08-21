@@ -54,7 +54,7 @@ private:
 	int 	_Exit 			(void);
 
 	int 	_SetPin 		(int value, bool bLogicalVaue = true);
-	int 	_GetPin 		(int *value, bool bLogicalVaue = true);
+	int 	_GetPin 		(int &value, bool bLogicalVaue = true);
 
 	int 	_GetActiveLow	(void);
 	int 	_SetActiveLow	(bool activeLow);

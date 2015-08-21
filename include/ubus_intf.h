@@ -14,7 +14,12 @@
 
 
 #define	UBUS_INTF_IS_PRODUCTION		0
-#define UBUS_INTF_IS_OMEGA			0
+
+#ifdef __APPLE__
+	#define UBUS_INTF_IS_OMEGA		0
+#else
+	#define UBUS_INTF_IS_OMEGA		1
+#endif 
 
 
 #if UBUS_INTF_IS_PRODUCTION

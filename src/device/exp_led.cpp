@@ -61,6 +61,7 @@ int ExpLed::_FunctionSet (void)
 	status |= JsonGetInt(EXP_LED_COLOR_R_STRING, &(colorVals[EXP_LED_COLOR_ID_R]) );
 	status |= JsonGetInt(EXP_LED_COLOR_G_STRING, &(colorVals[EXP_LED_COLOR_ID_G]) );
 	status |= JsonGetInt(EXP_LED_COLOR_B_STRING, &(colorVals[EXP_LED_COLOR_ID_B]) );
+	if (verbosityLevel > 0) printf("Setting RGB to %d%d%d\n", colorVals[EXP_LED_COLOR_ID_R], colorVals[EXP_LED_COLOR_ID_G], colorVals[EXP_LED_COLOR_ID_B] );
 
 	// write to the gpios
 	if (status == EXIT_SUCCESS) {
@@ -93,9 +94,9 @@ int ExpLed::_FunctionStatus (void)
 	jsonOut.SetObject();
 
 	// write the values to the json
-	_GenerateJsonMember( EXP_LED_COLOR_R_STRING, colorVals[EXP_LED_COLOR_ID_R] );
-	_GenerateJsonMember( EXP_LED_COLOR_G_STRING, colorVals[EXP_LED_COLOR_ID_G] );
-	_GenerateJsonMember( EXP_LED_COLOR_B_STRING, colorVals[EXP_LED_COLOR_ID_B] );
+	_GenerateJsonMember( EXP_LED_COLOR_R_STRING, !colorVals[EXP_LED_COLOR_ID_R] );
+	_GenerateJsonMember( EXP_LED_COLOR_G_STRING, !colorVals[EXP_LED_COLOR_ID_G] );
+	_GenerateJsonMember( EXP_LED_COLOR_B_STRING, !colorVals[EXP_LED_COLOR_ID_B] );
 
 	// output the json object
 	JsonPrint();
@@ -120,6 +121,7 @@ int ExpLed::_FunctionSetColor (void)
 
 
 	// JSON - find the color being used
+	/* TO DO: change this to detect JSON{"color":"red","value":1} */
 	if ( jsonDoc.HasMember(EXP_LED_COLOR_R_STRING) ) {
 		strcpy(colorName, EXP_LED_COLOR_R_STRING);
 		pinNum		= EXP_LED_COLOR_R_PIN_ID;

@@ -5,7 +5,7 @@ CXX := g++
 SRCDIR := src
 INCDIR := include
 BUILDDIR := build
-TARGET := bin/ubus_intf
+TARGET := bin/ubus-intf
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))

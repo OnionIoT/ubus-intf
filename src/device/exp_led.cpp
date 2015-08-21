@@ -44,10 +44,10 @@ int ExpLed::_WriteGpio(int pin, int value)
 
 	// use the gpio class
 	gpioObj.SetPinNumber(pin);
-	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
-	if ((gpioObj.SetPin(value)) < 0)	return EXIT_FAILURE;
-	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
-
+/*	if ((gpioObj._Init()) < 0)			return EXIT_FAILURE;
+	if ((gpioObj._SetPin(value)) < 0)	return EXIT_FAILURE;
+	if ((gpioObj._Exit()) < 0)			return EXIT_FAILURE;
+*/
 	return (status);
 }
 
@@ -63,10 +63,10 @@ int ExpLed::_ReadGpio(int pin, int *value)
 
 	// use the gpio class
 	gpioObj.SetPinNumber(pin);
-	if ((gpioObj.Init()) < 0)			return EXIT_FAILURE;
-	if ((gpioObj.GetPin(value)) < 0)	return EXIT_FAILURE;
-	if ((gpioObj.Exit()) < 0)			return EXIT_FAILURE;
-
+/*	if ((gpioObj._Init()) < 0)			return EXIT_FAILURE;
+	if ((gpioObj._GetPin(value)) < 0)	return EXIT_FAILURE;
+	if ((gpioObj._Exit()) < 0)			return EXIT_FAILURE;
+*/
 	return (status);
 }
 //// private functions 

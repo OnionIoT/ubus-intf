@@ -19,47 +19,6 @@ void Gpio::Reset(void)
 }
 
 //// public functions
-int Gpio::Init(void)
-{
-	int status 	= EXIT_SUCCESS;
-
-	if (!bDebugMode) 	{
-		// check that gpio is free
-		if ((bRequest = gpio_is_requested(gpioPin)) < 0)
-		{
-			if (verbosityLevel > 0) printf("gpio_is_requested\n");
-			return EXIT_FAILURE;
-		}
-
-		// request the pin
-		if (!bRequest) {
-			if ((gpio_request(gpioPin, NULL)) < 0)
-			{
-				if (verbosityLevel > 0) printf("gpio_request");
-				return EXIT_FAILURE;
-			}
-		}	
-	}
-
-	// find if pin is active-low
-	status = _GetActiveLow();
-
-	return (status);
-}
-
-int Gpio::Exit(void)
-{
-	// release the pin
-	if (!bRequest && !bDebugMode) {
-		if (gpio_free(gpioPin) < 0)
-		{
-			if (verbosityLevel > 0) printf("gpio_free");
-		}
-	}
-
-	return (EXIT_SUCCESS);
-}
-
 int Gpio::SetPinNumber(int pinNum)
 {
 	gpioPin 	= pinNum;
@@ -67,63 +26,49 @@ int Gpio::SetPinNumber(int pinNum)
 	return (EXIT_SUCCESS);
 }
 
-int Gpio::SetPin(int value, bool bLogicalVaue)
+int Gpio::Write(int pinNum, int value)
 {
-	int status 		= EXIT_SUCCESS;
+	int status 	= EXIT_SUCCESS;
 
-	// adjust for active-low pins
-	if (bLogicalVaue) {
-		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
-		value = bActiveLow ? !value : value;
-	}
+	if (verbosityLevel > 0)	printf("Gpio: writing to pin %d, value %d\n", pinNum, value);
 
-	// write the value to the pin
-	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to '%d'\n", gpioPin, value);
-	if (!bDebugMode) {
-		if ((status = gpio_set_value(gpioPin, value)) < 0) {
-			if (verbosityLevel > 0) printf("gpio_set_value");
-		}
-	}
+	// set the pin number
+	SetPinNumber(pinNum);
 
-	return (status);
-}
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
 
-int Gpio::GetPin(int *value, bool bLogicalVaue)
-{
-	int status 		= EXIT_SUCCESS;
-	int rdVal;
+	// write to the pin
+	if ((_SetPin(value)) < 0)	return EXIT_FAILURE;
 
-	// read the pin value
-	if (!bDebugMode) {
-		if ((rdVal = gpio_get_value(gpioPin)) < 0) {
-			if (verbosityLevel > 0) printf("gpio_get_value");
-			status = EXIT_FAILURE;
-		}
-	}
-	else {
-		rdVal = 1;
-	}
-
-	// take active-low into account
-	//		al 	pin 	value
-	//		0	0		0
-	//		0	1		1
-	//		1	0		1
-	//		1	1		0
-	// => logical value = al ^ pin
-	if (bLogicalVaue) {
-		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
-		rdVal 	= (bActiveLow ^ rdVal);
-	}
-
-	// return the value
-	if (verbosityLevel > 0) printf("Read GPIO ID '%d': '%d'\n", gpioPin, rdVal);
-	(*value) = rdVal;
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
 
 
 	return (status);
 }
 
+int Gpio::Read(int pinNum, int &value)
+{
+	int status 	= EXIT_SUCCESS;
+
+	if (verbosityLevel > 0)	printf("Gpio: reading pin %d\n", pinNum);
+
+	// set the pin number
+	SetPinNumber(pinNum);
+
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
+
+	// read the pin
+	if ((_GetPin(&value)) < 0)	return EXIT_FAILURE;
+
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
+
+
+	return (status);
+}
 
 bool Gpio::GetActiveLow(void)
 {
@@ -131,48 +76,13 @@ bool Gpio::GetActiveLow(void)
 	return (bActiveLow);
 }
 
-int Gpio::_GetActiveLow(void)
-{
-	// find if pin is active-low
-	if (!bDebugMode) {
-		if ((bActiveLow = gpio_get_activelow(gpioPin)) < 0)
-		{
-			if (verbosityLevel > 0) printf("gpio_get_activelow");
-			return EXIT_FAILURE;
-		}
-	}
-	else {		
-		bActiveLow = false;
-		if (verbosityLevel > 0) printf("Active-low is '%s'\n", (bActiveLow ? "true" : "false") );
-	}
-
-	return EXIT_SUCCESS;
-}
-
 int Gpio::SetActiveLow(bool activeLow)
 {
 	return ( _SetActiveLow(activeLow) );
 }
 
-int Gpio::_SetActiveLow(bool activeLow)
-{
-	int activeLowInt	= (activeLow ? 1 : 0);
 
-	// program pin's active-low setting
-	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to active-low '%d'\n", gpioPin, activeLowInt);
-	if (!bDebugMode) {
-		if ((gpio_set_activelow(gpioPin, activeLowInt)) < 0)
-		{
-			if (verbosityLevel > 0) printf("gpio_set_activelow");
-			return EXIT_FAILURE;
-		}
-	}
-
-	return EXIT_SUCCESS;
-}
-
-
-//// private functions
+/* private functions */
 
 // _Process function
 // Basic program flow:
@@ -201,7 +111,7 @@ int Gpio::_Process(char* function)
 	if (verbosityLevel > 0) printf("Using pin '%d'\n", gpioPin);
 
 	// initialize the gpio pin
-	Init();
+	_Init();
 
 
 	// check which function is to be used
@@ -231,7 +141,7 @@ int Gpio::_Process(char* function)
 
 
 	// free the pin
-	Exit();
+	_Exit();
 
 
 	return (status);
@@ -245,7 +155,7 @@ int Gpio::_FunctionSet(void)
 	int status 		= EXIT_SUCCESS;
 
 	// set the pin
-	status 	= SetPin(1);
+	status 	= _SetPin(1);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -261,7 +171,7 @@ int Gpio::_FunctionClear(void)
 	int status 		= 0;
 
 	// set the pin
-	status 	= SetPin(0);
+	status 	= _SetPin(0);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -284,7 +194,7 @@ int Gpio::_FunctionSetValue(void)
 	}
 
 	// set the pin
-	status 		= SetPin(value);
+	status 		= _SetPin(value);
 
 	// generate the json return
 	_GenerateJsonOut(status);
@@ -297,7 +207,7 @@ int Gpio::_FunctionGet(void)
 	int status 		= EXIT_SUCCESS;
 	int value;
 
-	status 	= GetPin(&value);
+	status 	= _GetPin(&value);
 
 	// generate the output json
 	_GenerateGetJson(value);
@@ -345,7 +255,7 @@ int Gpio::_FunctionStatus(void)
 	int value;
 
 	// set the pin
-	status 	= SetPin(value);
+	status 	= _SetPin(value);
 
 	return (status);
 }
@@ -442,9 +352,139 @@ void Gpio::_GenerateGetActiveLowJson(void)
 }
 
 
+//// gpio helper functions
+int Gpio::_Init(void)
+{
+	int status 	= EXIT_SUCCESS;
+
+	if (!bDebugMode) 	{
+		// check that gpio is free
+		if ((bRequest = gpio_is_requested(gpioPin)) < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_is_requested\n");
+			return EXIT_FAILURE;
+		}
+
+		// request the pin
+		if (!bRequest) {
+			if ((gpio_request(gpioPin, NULL)) < 0)
+			{
+				if (verbosityLevel > 0) printf("gpio_request");
+				return EXIT_FAILURE;
+			}
+		}	
+	}
+
+	// find if pin is active-low
+	status = _GetActiveLow();
+
+	return (status);
+}
+
+int Gpio::_Exit(void)
+{
+	// release the pin
+	if (!bRequest && !bDebugMode) {
+		if (gpio_free(gpioPin) < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_free");
+		}
+	}
+
+	return (EXIT_SUCCESS);
+}
+
+int Gpio::_SetPin(int value, bool bLogicalVaue)
+{
+	int status 		= EXIT_SUCCESS;
+
+	// adjust for active-low pins
+	if (bLogicalVaue) {
+		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
+		value = bActiveLow ? !value : value;
+	}
+
+	// write the value to the pin
+	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to '%d'\n", gpioPin, value);
+	if (!bDebugMode) {
+		if ((status = gpio_set_value(gpioPin, value)) < 0) {
+			if (verbosityLevel > 0) printf("gpio_set_value");
+		}
+	}
+
+	return (status);
+}
+
+int Gpio::_GetPin(int *value, bool bLogicalVaue)
+{
+	int status 		= EXIT_SUCCESS;
+	int rdVal;
+
+	// read the pin value
+	if (!bDebugMode) {
+		if ((rdVal = gpio_get_value(gpioPin)) < 0) {
+			if (verbosityLevel > 0) printf("gpio_get_value");
+			status = EXIT_FAILURE;
+		}
+	}
+	else {
+		rdVal = 1;
+	}
+
+	// take active-low into account
+	//		al 	pin 	value
+	//		0	0		0
+	//		0	1		1
+	//		1	0		1
+	//		1	1		0
+	// => logical value = al ^ pin
+	if (bLogicalVaue) {
+		if (verbosityLevel > 0) printf("Converting value to logical value, active-low is '%d'\n", bActiveLow);
+		rdVal 	= (bActiveLow ^ rdVal);
+	}
+
+	// return the value
+	if (verbosityLevel > 0) printf("Read GPIO ID '%d': '%d'\n", gpioPin, rdVal);
+	(*value) = rdVal;
 
 
+	return (status);
+}
 
+int Gpio::_GetActiveLow(void)
+{
+	// find if pin is active-low
+	if (!bDebugMode) {
+		if ((bActiveLow = gpio_get_activelow(gpioPin)) < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_get_activelow");
+			return EXIT_FAILURE;
+		}
+	}
+	else {		
+		bActiveLow = false;
+		if (verbosityLevel > 0) printf("Active-low is '%s'\n", (bActiveLow ? "true" : "false") );
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int Gpio::_SetActiveLow(bool activeLow)
+{
+	int activeLowInt	= (activeLow ? 1 : 0);
+
+	// program pin's active-low setting
+	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to active-low '%d'\n", gpioPin, activeLowInt);
+	if (!bDebugMode) {
+		if ((gpio_set_activelow(gpioPin, activeLowInt)) < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_set_activelow");
+			return EXIT_FAILURE;
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
 
 
 

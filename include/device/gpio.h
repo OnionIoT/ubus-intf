@@ -20,24 +20,22 @@ public:
 
 	void 	Reset 			(void);
 
-	int 	Init			(void);
-	int 	Exit 			(void);
-
 	int 	SetPinNumber 	(int pinNum);
-	int 	SetPin 			(int value, bool bLogicalVaue = true);
-	int 	GetPin 			(int *value, bool bLogicalVaue = true);
+
+	int 	Write 			(int pinNum, int value);
+	int 	Read 			(int pinNum, int &value);
+	
 
 	bool 	GetActiveLow	(void);
 	int 	SetActiveLow	(bool activeLow);
 
 private:
-	// private functions
+	//// private functions
 	int 	_Process				(char* function);
 
 	int 	_FunctionSet			(void);
 	int		_FunctionClear			(void);
 	int 	_FunctionSetValue		(void);
-
 	int		_FunctionGet			(void);
 
 	int		_FunctionGetActiveLow	(void);
@@ -45,15 +43,21 @@ private:
 
 	int 	_FunctionStatus			(void);
 
-
+	// json functions
 	void 	_GenerateJsonPinId			(void);
 	void 	_GenerateGetJson 			(int logicalValue);
 	void 	_GenerateGetActiveLowJson 	(void);
 	void 	_GenerateJsonOut 			(int inputStatus);
 
-	// helper functions
-	int 	_GetActiveLow			(void);
-	int 	_SetActiveLow			(bool activeLow);
+	// gpio helper functions
+	int 	_Init			(void);
+	int 	_Exit 			(void);
+
+	int 	_SetPin 		(int value, bool bLogicalVaue = true);
+	int 	_GetPin 		(int *value, bool bLogicalVaue = true);
+
+	int 	_GetActiveLow	(void);
+	int 	_SetActiveLow	(bool activeLow);
 
 
 	// private members

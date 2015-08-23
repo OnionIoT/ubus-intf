@@ -11,6 +11,8 @@
 #define		GPIO_FUNCTION_GET 			"get"
 #define		GPIO_FUNCTION_GET_AL		"get_activelow"
 #define		GPIO_FUNCTION_SET_AL		"set_activelow"
+#define		GPIO_FUNCTION_GET_DIR		"get_direction"
+#define		GPIO_FUNCTION_SET_DIR		"set_direction"
 #define		GPIO_FUNCTION_STATUS		"status"
 
 class Gpio : public Device {
@@ -29,6 +31,9 @@ public:
 	bool 	GetActiveLow	(void);
 	int 	SetActiveLow	(bool activeLow);
 
+	bool 	GetDirectionInput	(int pinNum);
+	int 	SetDirection 		(int pinNum, bool bInputDir);
+
 private:
 	//// private functions
 	int 	_Process				(char* function);
@@ -36,18 +41,25 @@ private:
 	int 	_FunctionSet			(void);
 	int		_FunctionClear			(void);
 	int 	_FunctionSetValue		(void);
+
 	int		_FunctionGet			(void);
 
 	int		_FunctionGetActiveLow	(void);
 	int		_FunctionSetActiveLow	(void);
 
+	int		_FunctionGetDirection	(void);
+	int		_FunctionSetDirection	(void);	
+
 	int 	_FunctionStatus			(void);
 
 	// json functions
-	void 	_GenerateJsonPinId			(void);
-	void 	_GenerateGetJson 			(int logicalValue);
-	void 	_GenerateGetActiveLowJson 	(void);
-	void 	_GenerateJsonOut 			(int inputStatus);
+	void 	_GenerateJsonPinId				(void);
+	void 	_GenerateGetJson 				(int logicalValue);
+	void 	_GenerateGetActiveLowJson 		(void);
+	void 	_GenerateDirectionJson 			(int bInputDir);
+	void 	_GenerateDirectionJsonString	(int bInputDir);
+	void 	_GenerateDirectionJsonBool 		(int bInputDir);
+	void 	_GenerateJsonOut 				(int inputStatus);
 
 	// gpio helper functions
 	int 	_Init			(void);
@@ -58,6 +70,9 @@ private:
 
 	int 	_GetActiveLow	(void);
 	int 	_SetActiveLow	(bool activeLow);
+
+	int 	_GetDirection	(int &bInputDir);
+	int 	_SetDirection	(int bInputDir, int initValue = 0);
 
 
 	// private members

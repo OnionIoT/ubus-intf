@@ -70,6 +70,7 @@ int Gpio::Read(int pinNum, int &value)
 	return (status);
 }
 
+
 bool Gpio::GetActiveLow(void)
 {
 	_GetActiveLow();
@@ -79,6 +80,30 @@ bool Gpio::GetActiveLow(void)
 int Gpio::SetActiveLow(bool activeLow)
 {
 	return ( _SetActiveLow(activeLow) );
+}
+
+
+bool Gpio::GetDirectionInput(int pinNum)
+{
+	int bInputDir;
+
+	// set the pin number
+	SetPinNumber(pinNum);
+
+	// find the pin direction
+	_GetDirection(bInputDir);
+
+	// return the direction: 0 - output; 1 - input
+	return ((bool)bInputDir);
+}
+
+int Gpio::SetDirection(int pinNum, bool bInputDir)
+{
+	// set the pin number
+	SetPinNumber(pinNum);
+
+	// set the direction
+	return ( _SetDirection((int)bInputDir)  );
 }
 
 
@@ -130,6 +155,12 @@ int Gpio::_Process(char* function)
 		}
 		else if (strcmp(function, GPIO_FUNCTION_SET_AL) == 0 )	{
 			status = _FunctionSetActiveLow();
+		}
+		else if (strcmp(function, GPIO_FUNCTION_GET_DIR) == 0 )	{
+			status = _FunctionGetDirection();
+		}
+		else if (strcmp(function, GPIO_FUNCTION_SET_DIR) == 0 )	{
+			status = _FunctionSetDirection();
 		}
 		else if (strcmp(function, GPIO_FUNCTION_STATUS) == 0 )	{
 			status = _FunctionStatus();
@@ -244,6 +275,48 @@ int Gpio::_FunctionSetActiveLow(void)
 	return (status);
 }
 
+int Gpio::_FunctionGetDirection(void)
+{
+	int status 		= EXIT_SUCCESS;
+	int bInputDirection;
+
+	// read the pin direction
+	_GetDirection(bInputDirection);
+
+	// generate the output json
+	_GenerateDirectionJson(bInputDirection);
+
+	return (status);
+}
+
+int Gpio::_FunctionSetDirection(void)
+{
+	int 	status 			= EXIT_SUCCESS;
+	int 	bInputDirection	= 0;
+
+	std::string 	direction;
+
+	// json - find the direction
+	if ( jsonDoc.HasMember( "direction" )) {
+		direction 	= jsonDoc["direction"].GetString();
+	}
+
+	if ( strcmp(direction.c_str(), "input") == 0) {
+		bInputDirection 	= 1;
+	}
+	else if ( strcmp(direction.c_str(), "output") == 0) {
+		bInputDirection 	= 0;
+	}
+
+	// set the active low value
+	status = _SetDirection(bInputDirection);
+
+	// generate the output json
+	_GenerateJsonOut(status);
+
+	return (status);
+}
+
 int Gpio::_FunctionStatus(void)
 {
 	int status 		= EXIT_SUCCESS;
@@ -350,6 +423,71 @@ void Gpio::_GenerateGetActiveLowJson(void)
 	JsonPrint();
 }
 
+void Gpio::_GenerateDirectionJson(int bInputDir)
+{
+	rapidjson::Value 	element;
+
+
+	// setup the json object
+	jsonOut.SetObject();
+
+	//// set the pin number
+	_GenerateJsonPinId();
+
+	//// set the direction string
+	_GenerateDirectionJsonString(bInputDir);
+
+	//// set the input direction boolean
+	_GenerateDirectionJsonBool(bInputDir);
+
+
+	// output the json object
+	JsonPrint();
+}
+
+void Gpio::_GenerateDirectionJsonString(int bInputDir)
+{
+	rapidjson::Value 	element;
+	char*				directionText	= new char[1024];
+
+	//// set the direction string
+	if (bInputDir) {
+		strcpy(directionText, "input");
+	}
+	else {
+		strcpy(directionText, "output");
+	}
+
+	// set the element value
+	element.SetString	(	directionText,
+							strlen(directionText), 
+							jsonOut.GetAllocator()
+						);
+
+	// add element to the json object
+	jsonOut.AddMember	(	rapidjson::Value("direction", jsonOut.GetAllocator()).Move(), 
+							element, 
+							jsonOut.GetAllocator() 
+						);
+
+	delete[] 	directionText;
+}
+
+void Gpio::_GenerateDirectionJsonBool(int bInputDir)
+{
+	rapidjson::Value 	element;
+
+	//// set the direction boolean
+	// set the element value
+	element.SetBool	( (bInputDir == 1 ? true : false) );
+
+	// add element to the json object
+	jsonOut.AddMember	(	rapidjson::Value("input", jsonOut.GetAllocator()).Move(), 
+							element, 
+							jsonOut.GetAllocator() 
+						);
+}
+
 
 //// gpio helper functions
 int Gpio::_Init(void)
@@ -451,6 +589,7 @@ int Gpio::_GetPin(int &value, bool bLogicalVaue)
 	return (status);
 }
 
+
 int Gpio::_GetActiveLow(void)
 {
 	// find if pin is active-low
@@ -486,6 +625,54 @@ int Gpio::_SetActiveLow(bool activeLow)
 	return EXIT_SUCCESS;
 }
 
+
+int Gpio::_GetDirection(int &bInputDir)
+{
+	int returnVal;
+
+	// find pin direction
+	if (!bDebugMode) {
+		if ((bInputDir = gpio_get_direction(gpioPin)) < 0)
+		{
+			if (returnVal > 0) printf("gpio_get_activelow");
+			return EXIT_FAILURE;
+		}
+
+		// convert the function output
+		bInputDir 	= (returnVal == GPIOF_DIR_IN ? 1 : 0);
+	}
+	else {		
+		bInputDir = 0;
+		if (verbosityLevel > 0) printf("Input direction is '%s'\n", (bInputDir ? "true" : "false") );
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int Gpio::_SetDirection(int bInputDir, int initValue)
+{
+	int returnVal;
+
+	// program pin's direction setting
+	if (verbosityLevel > 0) printf("Setting GPIO ID '%d' to input direction '%d'\n", gpioPin, bInputDir);
+	
+	if (!bDebugMode) {
+		if (bInputDir) {
+			returnVal 	= gpio_direction_input(gpioPin);
+		}
+		else {
+			returnVal 	= gpio_direction_output(gpioPin, (initValue == 1 ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW) );
+		}
+
+		if (returnVal < 0)
+		{
+			if (verbosityLevel > 0) printf("gpio_direction_[input/output]");
+			return EXIT_FAILURE;
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
 
 
 

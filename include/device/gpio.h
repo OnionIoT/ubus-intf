@@ -54,12 +54,12 @@ private:
 
 	// json functions
 	void 	_GenerateJsonPinId				(void);
-	void 	_GenerateGetJson 				(int logicalValue);
-	void 	_GenerateGetActiveLowJson 		(void);
-	void 	_GenerateDirectionJson 			(int bInputDir);
-	void 	_GenerateDirectionJsonString	(int bInputDir);
-	void 	_GenerateDirectionJsonBool 		(int bInputDir);
-	void 	_GenerateJsonOut 				(int inputStatus);
+	void 	_GenerateJsonValue 				(int logicalValue, bool bPrintObject = true);
+	void 	_GenerateJsonActiveLow	 		(bool bPrintObject = true);
+	void 	_GenerateJsonDirection 			(int bInputDir, bool bPrintObject = true);
+	void 	_GenerateJsonDirectionString	(int bInputDir);
+	void 	_GenerateJsonDirectionBool 		(int bInputDir);
+	void 	_GenerateJsonSuccess 			(int inputStatus, bool bPrintObject = true);
 
 	// gpio helper functions
 	int 	_Init			(void);

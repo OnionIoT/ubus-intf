@@ -184,7 +184,7 @@ int Gpio::_FunctionSet(void)
 	status 	= Write(gpioPin, 1);
 
 	// generate the json return
-	_GenerateJsonOut(status);
+	_GenerateJsonSuccess(status);
 
 	return (status);
 }
@@ -200,7 +200,7 @@ int Gpio::_FunctionClear(void)
 	status 	= Write(gpioPin, 0);
 
 	// generate the json return
-	_GenerateJsonOut(status);
+	_GenerateJsonSuccess(status);
 
 	return (status);
 }
@@ -223,7 +223,7 @@ int Gpio::_FunctionSetValue(void)
 	status 		= Write(gpioPin, value);
 
 	// generate the json return
-	_GenerateJsonOut(status);
+	_GenerateJsonSuccess(status);
 
 	return (status);
 }
@@ -236,7 +236,7 @@ int Gpio::_FunctionGet(void)
 	status 	= Read(gpioPin, value);
 
 	// generate the output json
-	_GenerateGetJson(value);
+	_GenerateJsonValue(value);
 
 	return (status);
 }
@@ -250,7 +250,7 @@ int Gpio::_FunctionGetActiveLow(void)
 	_GetActiveLow();
 
 	// generate the output json
-	_GenerateGetActiveLowJson();
+	_GenerateJsonActiveLow();
 
 	return (status);
 }
@@ -270,7 +270,7 @@ int Gpio::_FunctionSetActiveLow(void)
 	status = _SetActiveLow(activeLow);
 
 	// generate the output json
-	_GenerateJsonOut(status);
+	_GenerateJsonSuccess(status);
 
 	return (status);
 }
@@ -284,7 +284,7 @@ int Gpio::_FunctionGetDirection(void)
 	_GetDirection(bInputDirection);
 
 	// generate the output json
-	_GenerateDirectionJson(bInputDirection);
+	_GenerateJsonDirection(bInputDirection);
 
 	return (status);
 }
@@ -312,7 +312,7 @@ int Gpio::_FunctionSetDirection(void)
 	status = _SetDirection(bInputDirection);
 
 	// generate the output json
-	_GenerateJsonOut(status);
+	_GenerateJsonSuccess(status);
 
 	return (status);
 }
@@ -321,12 +321,27 @@ int Gpio::_FunctionStatus(void)
 {
 	int status 		= EXIT_SUCCESS;
 	int value;
+	int bInputDir;
 
 	// read the pin
-	status 	= Read(gpioPin, value);
+	status 	|= Read(gpioPin, value);
+
+	// read the pin direction
+	status	|= _GetDirection(bInputDir);
 
 	// read the active-low setting
+	status 	|= _GetActiveLow();
 
+
+	// output to json
+	jsonOut.SetObject();
+
+	_GenerateJsonPinId();
+	_GenerateJsonValue(value, false);
+	_GenerateJsonDirection(bInputDir, false);
+	_GenerateJsonActiveLow(false);
+
+	JsonPrint();
 
 
 	return (status);
@@ -349,13 +364,15 @@ void Gpio::_GenerateJsonPinId(void)
 						);
 }
 
-void Gpio::_GenerateJsonOut(int inputStatus)
+void Gpio::_GenerateJsonSuccess(int inputStatus, bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
 
 	// setup the json object
-	jsonOut.SetObject();
+	if (bPrintObject) {
+		jsonOut.SetObject();
+	}
 
 	// populate the value
 	if (inputStatus == EXIT_SUCCESS)
@@ -370,22 +387,26 @@ void Gpio::_GenerateJsonOut(int inputStatus)
 	jsonOut.AddMember("success", element, jsonOut.GetAllocator() );
 
 	// output the json object
-	JsonPrint();
+	if (bPrintObject) {
+		JsonPrint();
+	}
 }
 
-void Gpio::_GenerateGetJson(int logicalValue)
+void Gpio::_GenerateJsonValue(int logicalValue, bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
 	// setup the json object
-	jsonOut.SetObject();
+	if (bPrintObject) {
+		jsonOut.SetObject();
 
-	//// set the pin number
-	_GenerateJsonPinId();
+		//// set the pin number
+		_GenerateJsonPinId();
+	}	
 
 	//// set the pin value
 	// set the element value
-	element.SetBool((bool)logicalValue);
+	element.SetInt(logicalValue);
 
 	// add element to the json object
 	jsonOut.AddMember	(	rapidjson::Value("value", jsonOut.GetAllocator()).Move(), 
@@ -395,18 +416,22 @@ void Gpio::_GenerateGetJson(int logicalValue)
 
 
 	// output the json object
-	JsonPrint();
+	if (bPrintObject) {
+		JsonPrint();
+	}
 }
 
-void Gpio::_GenerateGetActiveLowJson(void)
+void Gpio::_GenerateJsonActiveLow(bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
 	// setup the json object
-	jsonOut.SetObject();
+	if (bPrintObject) {
+		jsonOut.SetObject();
 
-	//// set the pin number
-	_GenerateJsonPinId();
+		//// set the pin number
+		_GenerateJsonPinId();
+	}
 
 	//// set the activelow value
 	// set the element value
@@ -420,32 +445,38 @@ void Gpio::_GenerateGetActiveLowJson(void)
 
 
 	// output the json object
-	JsonPrint();
+	if (bPrintObject) {
+		JsonPrint();
+	}
 }
 
-void Gpio::_GenerateDirectionJson(int bInputDir)
+void Gpio::_GenerateJsonDirection(int bInputDir, bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
 
 	// setup the json object
-	jsonOut.SetObject();
+	if (bPrintObject) {
+		jsonOut.SetObject();
 
-	//// set the pin number
-	_GenerateJsonPinId();
+		//// set the pin number
+		_GenerateJsonPinId();
+	}
 
 	//// set the direction string
-	_GenerateDirectionJsonString(bInputDir);
+	_GenerateJsonDirectionString(bInputDir);
 
 	//// set the input direction boolean
-	_GenerateDirectionJsonBool(bInputDir);
+	_GenerateJsonDirectionBool(bInputDir);
 
 
 	// output the json object
-	JsonPrint();
+	if (bPrintObject) {
+		JsonPrint();
+	}
 }
 
-void Gpio::_GenerateDirectionJsonString(int bInputDir)
+void Gpio::_GenerateJsonDirectionString(int bInputDir)
 {
 	rapidjson::Value 	element;
 	char*				directionText	= new char[1024];
@@ -473,7 +504,7 @@ void Gpio::_GenerateDirectionJsonString(int bInputDir)
 	delete[] 	directionText;
 }
 
-void Gpio::_GenerateDirectionJsonBool(int bInputDir)
+void Gpio::_GenerateJsonDirectionBool(int bInputDir)
 {
 	rapidjson::Value 	element;
 

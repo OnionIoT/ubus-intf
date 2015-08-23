@@ -41,10 +41,9 @@ then
 	elif [ $function == "set_direction" ]
 	then
 		./bin/ubus-intf -device gpio -function set_direction -json '{"pin":5, "direction":"input"}'
-		
 	elif [ $function == "status" ]
 	then
-		./bin/ubus-intf -device gpio -function status -json ''
+		./bin/ubus-intf -device gpio -function status -json '{"pin":0}'
 	fi
 fi
 

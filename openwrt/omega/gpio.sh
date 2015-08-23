@@ -5,22 +5,22 @@ device="gpio"
 # WRITE THIS WHOLE THING 
 
 case "$1" in
-	list)
+    list)
 		echo '{ "set": { "red": "string", "green": "string", "blue": "string" }, "status": { } }'
-	;;
-	call)
+    ;;
+    call)
 		case "$2" in
 			set)
 				# read the json arguments
 				read input;
 
 				# run the ubus interface
-				ubus_intf -device $device -function $2 -json '$input'
+				ubus-intf -device $device -function $2 -json $input
 			;;
 			status)
 				# run the ubus interface
-				ubus_intf -device $device -function $2 -json ''
-			;;
+				ubus-intf -device $device -function $2 -json \'\'
+		;;
 		esac
-	;;
+    ;;
 esac

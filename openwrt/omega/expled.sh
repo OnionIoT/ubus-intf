@@ -13,12 +13,13 @@ case "$1" in
 				read input;
 
 				# run the ubus interface
-				ubus_intf -device $device -function $2 -json $input
+				ubus-intf -device $device -function $2 -json $input
 			;;
 			status)
 				# run the ubus interface
-				ubus_intf -device $device -function $2 -json \'\'
+				ubus-intf -device $device -function $2 -json \'\'
 		;;
 		esac
     ;;
 esac
+

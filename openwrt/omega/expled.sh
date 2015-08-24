@@ -2,9 +2,12 @@
 
 device="expled"
 
+jsonSet='"set": { "red": 32, "green": 32, "blue": 32 }'
+jsonStatus='"status": { }'
+
 case "$1" in
     list)
-		echo '{ "set": { "red": "string", "green": "string", "blue": "string" }, "status": { } }'
+		echo "{ $jsonSet, $jsonStatus }"
     ;;
     call)
 		case "$2" in

@@ -2,25 +2,33 @@
 
 device="gpio"
 
-# WRITE THIS WHOLE THING 
+
+jsonPin='"pin": 32'
+
+jsonSet="\"set\": { $jsonPin }"
+jsonClear="\"clear\": { $jsonPin }"
+jsonSetPin="\"set_pin\": { $jsonPin, \"value\": 32 }"
+jsonGet="\"get\": { $jsonPin }"
+jsonGetAl="\"get_activelow\": { $jsonPin }"
+jsonSetAl="\"set_activelow\": { $jsonPin, \"activelow\": false }"
+jsonGetDir="\"get_direction\": { $jsonPin }"
+jsonSetDir="\"set_direction\": { $jsonPin, \"direction\": \"string\" }"
+jsonStatus="\"status\": { $jsonPin }"
+
 
 case "$1" in
     list)
-		echo '{ "set": { "red": "string", "green": "string", "blue": "string" }, "status": { } }'
+		echo "{ $jsonSet, $jsonClear, $jsonSetPin, $jsonGet, $jsonGetAl, $jsonSetAl, $jsonGetDir, $jsonSetDir, $jsonStatus }"
     ;;
     call)
 		case "$2" in
-			set)
+			set|clear|set_pin|get|get_activelow|set_activelow|get_direction|set_direction|status)
 				# read the json arguments
 				read input;
 
 				# run the ubus interface
 				ubus-intf -device $device -function $2 -json $input
 			;;
-			status)
-				# run the ubus interface
-				ubus-intf -device $device -function $2 -json \'\'
-		;;
 		esac
     ;;
 esac

@@ -663,9 +663,9 @@ int Gpio::_GetDirection(int &bInputDir)
 
 	// find pin direction
 	if (!bDebugMode) {
-		if ((bInputDir = gpio_get_direction(gpioPin)) < 0)
+		if ((returnVal = gpio_get_direction(gpioPin)) < 0)
 		{
-			if (returnVal > 0) printf("gpio_get_activelow");
+			if (verbosityLevel > 0) printf("gpio_get_activelow");
 			return EXIT_FAILURE;
 		}
 

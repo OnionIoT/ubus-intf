@@ -321,7 +321,7 @@ int Gpio::_FunctionStatus(void)
 {
 	int status 		= EXIT_SUCCESS;
 	int value;
-	int bInputDir;
+	int bInputDir 	= 0;
 
 	// read the pin
 	status 	|= Read(gpioPin, value);
@@ -334,19 +334,18 @@ int Gpio::_FunctionStatus(void)
 
 
 	// output to json
-	if (status == EXIT_SUCCESS) {
-		jsonOut.SetObject();
+	jsonOut.SetObject();
 
-		_GenerateJsonPinId();
-		_GenerateJsonValue(value, false);
-		_GenerateJsonDirection(bInputDir, false);
-		_GenerateJsonActiveLow(false);
+	_GenerateJsonPinId();
+	_GenerateJsonValue(value, false);
+	_GenerateJsonDirection(bInputDir, false);
+	_GenerateJsonActiveLow(false);
 
-		JsonPrint();
+	if (status == EXIT_FAILURE) {
+		_GenerateJsonSuccess(status, false);
 	}
-	else {
-		_GenerateJsonSuccess(status);
-	}
+
+	JsonPrint();
 
 
 	return (status);

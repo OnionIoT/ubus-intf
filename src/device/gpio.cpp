@@ -487,7 +487,7 @@ void Gpio::_GenerateJsonDirectionString(int bInputDir)
 	char*				directionText	= new char[1024];
 
 	//// set the direction string
-	if (bInputDir) {
+	if (bInputDir == 1) {
 		strcpy(directionText, "input");
 	}
 	else {
@@ -670,7 +670,7 @@ int Gpio::_GetDirection(int &bInputDir)
 	if (!bDebugMode) {
 		if ((returnVal = gpio_get_direction(gpioPin)) < 0)
 		{
-			if (verbosityLevel > 0) printf("gpio_get_activelow");
+			if (verbosityLevel > 0) printf("gpio_get_direction");
 			return EXIT_FAILURE;
 		}
 

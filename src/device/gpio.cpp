@@ -334,14 +334,19 @@ int Gpio::_FunctionStatus(void)
 
 
 	// output to json
-	jsonOut.SetObject();
+	if (status == EXIT_SUCCESS) {
+		jsonOut.SetObject();
 
-	_GenerateJsonPinId();
-	_GenerateJsonValue(value, false);
-	_GenerateJsonDirection(bInputDir, false);
-	_GenerateJsonActiveLow(false);
+		_GenerateJsonPinId();
+		_GenerateJsonValue(value, false);
+		_GenerateJsonDirection(bInputDir, false);
+		_GenerateJsonActiveLow(false);
 
-	JsonPrint();
+		JsonPrint();
+	}
+	else {
+		_GenerateJsonSuccess(status);
+	}
 
 
 	return (status);

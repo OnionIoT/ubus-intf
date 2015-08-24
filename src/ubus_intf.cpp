@@ -18,6 +18,9 @@ int main(int argc, char* argv[])
 	ExpLed 	expLedObj;
 	Gpio 	gpioObj;
 
+	int 	verbosity 		= UBUS_INTF_VERBOSE;
+	int 	debugLevel		= UBUS_INTF_DEBUG;
+
 
 	//// initialization
 	// allocate memory for the pointers
@@ -25,12 +28,7 @@ int main(int argc, char* argv[])
 	function 	= new char[1024];
 	json 		= new char[1024];
 
-	// class initialization
-	expLedObj.SetVerbosity(UBUS_INTF_VERBOSE);
-	expLedObj.SetDebugMode(UBUS_INTF_DEBUG);
-
-	gpioObj.SetVerbosity(UBUS_INTF_VERBOSE);
-	gpioObj.SetDebugMode(UBUS_INTF_DEBUG);
+	
 	
 	// parse the command line arguments
 	if (UBUS_INTF_VERBOSE) printf("Parsing arguments:\n");
@@ -53,7 +51,24 @@ int main(int argc, char* argv[])
 			
 			if (UBUS_INTF_VERBOSE) printf("\tparsing json: %s\n", json);
 		}
-	}	
+		else if ( strcmp(argv[i], "-verbose") == 0 )	{
+			// change the verbosity setting
+			verbosity 	= 1;
+		}
+		else if ( strcmp(argv[i], "-debug") == 0 )	{
+			// change the debug setting
+			debugLevel 	= 1;
+		}
+	}
+
+
+	// class initialization
+	expLedObj.SetVerbosity(verbosity);
+	expLedObj.SetDebugMode(debugLevel);
+
+	gpioObj.SetVerbosity(verbosity);
+	gpioObj.SetDebugMode(debugLevel);
+
 
 	// check device against list of existing devices
 	/* TODO: make this cleaner */
@@ -66,6 +81,7 @@ int main(int argc, char* argv[])
 		if (UBUS_INTF_VERBOSE) printf("gpio Object:\n\n");
 		gpioObj.Process(function, json);
 	}
+
 
 	//// clean-up
 	// free dynamically allocated memory

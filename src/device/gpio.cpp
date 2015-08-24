@@ -325,12 +325,21 @@ int Gpio::_FunctionStatus(void)
 
 	// read the pin
 	status 	|= Read(gpioPin, value);
+	if (status != EXIT_SUCCESS && verbosityLevel > 0) {
+		printf("gpio::status:: Read function failed\n");
+	}
 
 	// read the pin direction
 	status	|= _GetDirection(bInputDir);
+	if (status != EXIT_SUCCESS && verbosityLevel > 0) {
+		printf("gpio::status:: _GetDirection function failed\n");
+	}
 
 	// read the active-low setting
 	status 	|= _GetActiveLow();
+	if (status != EXIT_SUCCESS && verbosityLevel > 0) {
+		printf("gpio::status:: _GetActiveLow function failed\n");
+	}
 
 
 	// output to json

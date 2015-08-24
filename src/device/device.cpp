@@ -33,7 +33,7 @@ void Device::SetDebugMode(bool input)
 {
 	bDebugMode	= input;
 
-	if (input && verbosityLevel >0 )	printf("device:: debug mode enabled\n");
+	if (input && verbosityLevel > 0 )	printf("device:: debug mode enabled\n");
 }
 
 //// protected functions

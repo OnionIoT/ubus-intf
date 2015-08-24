@@ -28,10 +28,10 @@ public:
 	int 	Read 			(int pinNum, int &value);
 	
 
-	bool 	GetActiveLow	(void);
-	int 	SetActiveLow	(bool activeLow);
+	int 	GetActiveLow		(int pinNum, bool &activeLow);
+	int 	SetActiveLow		(int pinNum, bool activeLow);
 
-	bool 	GetDirectionInput	(int pinNum);
+	int 	GetDirection 		(int pinNum, bool &bInputDir);
 	int 	SetDirection 		(int pinNum, bool bInputDir);
 
 private:
@@ -55,10 +55,10 @@ private:
 	// json functions
 	void 	_GenerateJsonPinId				(void);
 	void 	_GenerateJsonValue 				(int logicalValue, bool bPrintObject = true);
-	void 	_GenerateJsonActiveLow	 		(bool bPrintObject = true);
-	void 	_GenerateJsonDirection 			(int bInputDir, bool bPrintObject = true);
-	void 	_GenerateJsonDirectionString	(int bInputDir);
-	void 	_GenerateJsonDirectionBool 		(int bInputDir);
+	void 	_GenerateJsonActiveLow	 		(bool activeLow, bool bPrintObject = true);
+	void 	_GenerateJsonDirection 			(bool bInputDir, bool bPrintObject = true);
+	void 	_GenerateJsonDirectionString	(bool bInputDir);
+	void 	_GenerateJsonDirectionBool 		(bool bInputDir);
 	void 	_GenerateJsonSuccess 			(int inputStatus, bool bPrintObject = true);
 
 	// gpio helper functions
@@ -68,7 +68,7 @@ private:
 	int 	_SetPin 		(int value, bool bLogicalVaue = true);
 	int 	_GetPin 		(int &value, bool bLogicalVaue = true);
 
-	int 	_GetActiveLow	(void);
+	int 	_GetActiveLow	(bool &activeLow);
 	int 	_SetActiveLow	(bool activeLow);
 
 	int 	_GetDirection	(int &bInputDir);

@@ -71,39 +71,93 @@ int Gpio::Read(int pinNum, int &value)
 }
 
 
-bool Gpio::GetActiveLow(void)
+int Gpio::GetActiveLow(int pinNum, bool &activeLow)
 {
-	_GetActiveLow();
-	return (bActiveLow);
-}
+	int status 	= EXIT_SUCCESS;
 
-int Gpio::SetActiveLow(bool activeLow)
-{
-	return ( _SetActiveLow(activeLow) );
-}
-
-
-bool Gpio::GetDirectionInput(int pinNum)
-{
-	int bInputDir;
+	if (verbosityLevel > 0)	printf("Gpio: read pin %d activelow setting\n", pinNum);
 
 	// set the pin number
 	SetPinNumber(pinNum);
 
-	// find the pin direction
-	_GetDirection(bInputDir);
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
 
-	// return the direction: 0 - output; 1 - input
-	return ((bool)bInputDir);
+	// read the active low setting
+	if ((_GetActiveLow(activeLow)) < 0)	return EXIT_FAILURE;
+
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
+
+	return (status);
+}
+
+int Gpio::SetActiveLow(int pinNum, bool activeLow)
+{
+	int status 	= EXIT_SUCCESS;
+
+	if (verbosityLevel > 0)	printf("Gpio: setting pin %d to activelow %d\n", pinNum, (int)activeLow);
+
+	// set the pin number
+	SetPinNumber(pinNum);
+
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
+
+	// read the active low setting
+	if ((_SetActiveLow(activeLow)) < 0)	return EXIT_FAILURE;
+
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
+
+	return (status);
+}
+
+
+int Gpio::GetDirection(int pinNum, bool &bInputDir)
+{
+	int status 	= EXIT_SUCCESS;
+	int inputDir;
+
+	if (verbosityLevel > 0)	printf("Gpio: reading pin %d direction\n", pinNum);
+
+	// set the pin number
+	SetPinNumber(pinNum);
+
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
+
+	// read the active low setting
+	if ((_GetDirection(inputDir)) < 0)	return EXIT_FAILURE;
+
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
+
+	// return the value
+	bInputDir = (inputDir == 1 ? true : false);
+
+	return (status);
 }
 
 int Gpio::SetDirection(int pinNum, bool bInputDir)
 {
+	int status 	= EXIT_SUCCESS;
+
+	if (verbosityLevel > 0)	printf("Gpio: setting pin %d to direction %s\n", pinNum, (bInputDir ? "input" : "output"));
+
 	// set the pin number
 	SetPinNumber(pinNum);
 
-	// set the direction
-	return ( _SetDirection((int)bInputDir)  );
+	// initialize the pin
+	if ((_Init()) < 0)			return EXIT_FAILURE;
+
+	// read the active low setting
+	if ((_SetDirection((int)bInputDir)) < 0)	return EXIT_FAILURE;
+
+	// release the pin
+	if ((_Exit()) < 0)			return EXIT_FAILURE;
+
+	return (status);
 }
 
 
@@ -244,13 +298,14 @@ int Gpio::_FunctionGet(void)
 int Gpio::_FunctionGetActiveLow(void)
 {
 	int status 		= EXIT_SUCCESS;
-	int value;
+	
+	bool activeLow;
 
 	// read the active low value
-	_GetActiveLow();
+	status = GetActiveLow(gpioPin, activeLow);
 
 	// generate the output json
-	_GenerateJsonActiveLow();
+	_GenerateJsonActiveLow(activeLow);
 
 	return (status);
 }
@@ -267,7 +322,7 @@ int Gpio::_FunctionSetActiveLow(void)
 	}
 
 	// set the active low value
-	status = _SetActiveLow(activeLow);
+	status = SetActiveLow(gpioPin, activeLow);
 
 	// generate the output json
 	_GenerateJsonSuccess(status);
@@ -278,10 +333,10 @@ int Gpio::_FunctionSetActiveLow(void)
 int Gpio::_FunctionGetDirection(void)
 {
 	int status 		= EXIT_SUCCESS;
-	int bInputDirection;
+	bool bInputDirection;
 
 	// read the pin direction
-	_GetDirection(bInputDirection);
+	status = GetDirection(gpioPin, bInputDirection);
 
 	// generate the output json
 	_GenerateJsonDirection(bInputDirection);
@@ -292,7 +347,7 @@ int Gpio::_FunctionGetDirection(void)
 int Gpio::_FunctionSetDirection(void)
 {
 	int 	status 			= EXIT_SUCCESS;
-	int 	bInputDirection	= 0;
+	bool 	bInputDirection	= false;
 
 	std::string 	direction;
 
@@ -302,14 +357,14 @@ int Gpio::_FunctionSetDirection(void)
 	}
 
 	if ( strcmp(direction.c_str(), "input") == 0) {
-		bInputDirection 	= 1;
+		bInputDirection 	= true;
 	}
 	else if ( strcmp(direction.c_str(), "output") == 0) {
-		bInputDirection 	= 0;
+		bInputDirection 	= false;
 	}
 
 	// set the active low value
-	status = _SetDirection(bInputDirection);
+	status = SetDirection(gpioPin, bInputDirection);
 
 	// generate the output json
 	_GenerateJsonSuccess(status);
@@ -320,8 +375,10 @@ int Gpio::_FunctionSetDirection(void)
 int Gpio::_FunctionStatus(void)
 {
 	int status 		= EXIT_SUCCESS;
-	int value;
-	int bInputDir 	= 0;
+	
+	int 	value;
+	bool 	activeLow 	= false;
+	bool 	bInputDir 	= false;
 
 	// read the pin
 	status 	|= Read(gpioPin, value);
@@ -330,15 +387,15 @@ int Gpio::_FunctionStatus(void)
 	}
 
 	// read the pin direction
-	status	|= _GetDirection(bInputDir);
+	status	|= GetDirection(gpioPin, bInputDir);
 	if (status != EXIT_SUCCESS && verbosityLevel > 0) {
-		printf("gpio::status:: _GetDirection function failed\n");
+		printf("gpio::status:: GetDirection function failed\n");
 	}
 
 	// read the active-low setting
-	status 	|= _GetActiveLow();
+	status 	|= GetActiveLow(gpioPin, activeLow);
 	if (status != EXIT_SUCCESS && verbosityLevel > 0) {
-		printf("gpio::status:: _GetActiveLow function failed\n");
+		printf("gpio::status:: GetActiveLow function failed\n");
 	}
 
 
@@ -348,7 +405,7 @@ int Gpio::_FunctionStatus(void)
 	_GenerateJsonPinId();
 	_GenerateJsonValue(value, false);
 	_GenerateJsonDirection(bInputDir, false);
-	_GenerateJsonActiveLow(false);
+	_GenerateJsonActiveLow(activeLow, false);
 
 	if (status == EXIT_FAILURE) {
 		_GenerateJsonSuccess(status, false);
@@ -434,7 +491,7 @@ void Gpio::_GenerateJsonValue(int logicalValue, bool bPrintObject)
 	}
 }
 
-void Gpio::_GenerateJsonActiveLow(bool bPrintObject)
+void Gpio::_GenerateJsonActiveLow(bool activeLow, bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
@@ -448,7 +505,7 @@ void Gpio::_GenerateJsonActiveLow(bool bPrintObject)
 
 	//// set the activelow value
 	// set the element value
-	element.SetBool((bool)bActiveLow);
+	element.SetBool(activeLow);
 
 	// add element to the json object
 	jsonOut.AddMember	(	rapidjson::Value("activelow", jsonOut.GetAllocator()).Move(), 
@@ -463,7 +520,7 @@ void Gpio::_GenerateJsonActiveLow(bool bPrintObject)
 	}
 }
 
-void Gpio::_GenerateJsonDirection(int bInputDir, bool bPrintObject)
+void Gpio::_GenerateJsonDirection(bool bInputDir, bool bPrintObject)
 {
 	rapidjson::Value 	element;
 
@@ -489,13 +546,13 @@ void Gpio::_GenerateJsonDirection(int bInputDir, bool bPrintObject)
 	}
 }
 
-void Gpio::_GenerateJsonDirectionString(int bInputDir)
+void Gpio::_GenerateJsonDirectionString(bool bInputDir)
 {
 	rapidjson::Value 	element;
 	char*				directionText	= new char[1024];
 
 	//// set the direction string
-	if (bInputDir == 1) {
+	if (bInputDir) {
 		strcpy(directionText, "input");
 	}
 	else {
@@ -517,13 +574,13 @@ void Gpio::_GenerateJsonDirectionString(int bInputDir)
 	delete[] 	directionText;
 }
 
-void Gpio::_GenerateJsonDirectionBool(int bInputDir)
+void Gpio::_GenerateJsonDirectionBool(bool bInputDir)
 {
 	rapidjson::Value 	element;
 
 	//// set the direction boolean
 	// set the element value
-	element.SetBool	( (bInputDir == 1 ? true : false) );
+	element.SetBool	( bInputDir );
 
 	// add element to the json object
 	jsonOut.AddMember	(	rapidjson::Value("input", jsonOut.GetAllocator()).Move(), 
@@ -537,6 +594,8 @@ void Gpio::_GenerateJsonDirectionBool(int bInputDir)
 int Gpio::_Init(void)
 {
 	int status 	= EXIT_SUCCESS;
+
+	bool inputDir;
 
 	if (!bDebugMode) 	{
 		// check that gpio is free
@@ -557,7 +616,7 @@ int Gpio::_Init(void)
 	}
 
 	// find if pin is active-low
-	status = _GetActiveLow();
+	status = _GetActiveLow(inputDir);
 
 	return (status);
 }
@@ -634,20 +693,23 @@ int Gpio::_GetPin(int &value, bool bLogicalVaue)
 }
 
 
-int Gpio::_GetActiveLow(void)
+int Gpio::_GetActiveLow(bool &activeLow)
 {
 	// find if pin is active-low
 	if (!bDebugMode) {
-		if ((bActiveLow = gpio_get_activelow(gpioPin)) < 0)
+		if ((activeLow = gpio_get_activelow(gpioPin)) < 0)
 		{
 			if (verbosityLevel > 0) printf("gpio_get_activelow");
 			return EXIT_FAILURE;
 		}
 	}
 	else {		
-		bActiveLow = false;
-		if (verbosityLevel > 0) printf("Active-low is '%s'\n", (bActiveLow ? "true" : "false") );
+		activeLow = false;
+		if (verbosityLevel > 0) printf("Active-low is '%s'\n", (activeLow ? "true" : "false") );
 	}
+
+	// set the class variable
+	bActiveLow 	= activeLow;
 
 	return EXIT_SUCCESS;
 }
